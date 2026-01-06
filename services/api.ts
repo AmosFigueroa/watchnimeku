@@ -1,6 +1,9 @@
 import { User, Review, Notification, Movie } from '../types';
 
-const API_URL = 'http://localhost:5000/api';
+// Detect environment: In Vercel, we use relative paths '/api'. Locally we use localhost:5000.
+// Safely check for import.meta.env to avoid "Cannot read properties of undefined" error
+const isProd = (import.meta as any).env?.PROD;
+const API_URL = isProd ? '/api' : 'http://localhost:5000/api';
 
 // Helper to get token
 const getAuthHeader = () => {
@@ -20,8 +23,8 @@ export const api = {
         if (!res.ok) throw new Error('Login failed');
         return await res.json();
     } catch (e) {
-        console.warn("Backend offline, using Mock");
-        // MOCK LOGIN FOR DEMO
+        console.warn("Backend offline or error", e);
+        // MOCK LOGIN FOR DEMO (Fallback)
         if(email === 'admin@hulu.id' && password === 'admin') {
             return {
                 user: { _id: '1', username: 'Admin', email, isAdmin: true, watchlist: [] },

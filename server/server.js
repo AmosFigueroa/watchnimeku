@@ -10,7 +10,13 @@ require('dotenv').config(); // Ensure you have a .env file with MONGODB_URI
 
 const app = express();
 app.use(express.json());
-app.use(cors());
+
+// Allow CORS for your specific Vercel domain or all (*)
+app.use(cors({
+    origin: '*', 
+    methods: ['GET', 'POST', 'DELETE', 'PUT', 'PATCH'],
+    credentials: true
+}));
 
 // --- MONGODB SCHEMAS ---
 
@@ -65,6 +71,10 @@ const auth = (req, res, next) => {
         res.status(400).send('Invalid Token');
     }
 };
+
+app.get('/', (req, res) => {
+    res.send('StreamHulu API is running');
+});
 
 // Auth Routes
 app.post('/api/auth/register', async (req, res) => {
@@ -152,12 +162,17 @@ app.get('/api/notifications', auth, async (req, res) => {
 });
 
 
-// Connect and Start
-const PORT = process.env.PORT || 5000;
+// Connect to DB
 const DB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/streamhulu';
-
 mongoose.connect(DB_URI)
-    .then(() => {
-        app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-    })
+    .then(() => console.log("MongoDB Connected"))
     .catch(err => console.error(err));
+
+// EXPORT APP FOR VERCEL
+module.exports = app;
+
+// LISTEN ONLY IF RUNNING LOCALLY (Not in Vercel)
+if (require.main === module) {
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+}
