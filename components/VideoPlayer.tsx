@@ -3,7 +3,7 @@ import {
   ArrowLeft, Layers, X, Loader2, Settings, MonitorPlay
 } from 'lucide-react';
 import { Movie, Episode, Stream } from '../types';
-import { getAnimeDetail, getEpisodeStreams } from '../services/movieService';
+import { getAnimeDetail, getEpisodeStreams, getYouTubePlaylistEpisodes } from '../services/movieService';
 
 interface VideoPlayerProps {
   movie: Movie;
@@ -30,8 +30,28 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ movie: initialMovie, onClose 
   // 1. Initial Load: Get Full Anime Details (Episodes)
   useEffect(() => {
     const fetchDetails = async () => {
-      // If it's a YouTube Source, we already constructed episodes in the service
+      // HANDLE YOUTUBE SOURCE WITH SCRAPING
       if (initialMovie.source === 'youtube') {
+         setIsLoadingDetails(true);
+         
+         // 1. Try to scrape real episodes from the YouTube playlist to get VideoIDs
+         if (initialMovie.youtubeId) {
+             const realEpisodes = await getYouTubePlaylistEpisodes(initialMovie.youtubeId);
+             
+             if (realEpisodes.length > 0) {
+                 // Success: We have real episodes with Direct Video IDs
+                 const updatedMovie = { ...initialMovie, episodes: realEpisodes };
+                 setMovie(updatedMovie);
+                 
+                 // Try to match the clicked episode number or default to first
+                 const startEp = realEpisodes.find(e => e.number === (initialMovie.episodes?.[0]?.number || 1));
+                 setCurrentEpisode(startEp || realEpisodes[0]);
+                 setIsLoadingDetails(false);
+                 return;
+             }
+         }
+
+         // 2. Fallback: Use the Jikan-generated dummy episodes (Will use Search Fallback)
          setMovie(initialMovie);
          if (initialMovie.episodes && initialMovie.episodes.length > 0) {
              setCurrentEpisode(initialMovie.episodes[0]);
@@ -40,6 +60,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ movie: initialMovie, onClose 
          return;
       }
 
+      // HANDLE STANDARD SOURCES (Scrape/Jikan)
       if (!initialMovie.slug) {
           setIsLoadingDetails(false);
           return;
@@ -153,7 +174,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ movie: initialMovie, onClose 
                     {isLoadingDetails ? "Loading Anime Data..." : "Connecting to Server..."}
                 </h3>
                 <p className="text-gray-400 mt-2 text-sm">
-                    {movie.source === 'youtube' ? 'Loading YouTube Player...' : 'Searching for best stream...'}
+                    {movie.source === 'youtube' ? 'Syncing YouTube Playlist...' : 'Searching for best stream...'}
                 </p>
             </div>
         )}
@@ -230,7 +251,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ movie: initialMovie, onClose 
                     className={`flex gap-3 p-3 rounded-xl cursor-pointer transition-all group ${currentEpisode?.id === ep.id ? 'bg-[#1ce783] text-black' : 'hover:bg-white/10 text-gray-300'}`}
                 >
                     <div className="relative w-24 h-14 flex-shrink-0 rounded-lg overflow-hidden bg-black flex items-center justify-center border border-white/5">
-                        <img src={movie.thumbnailUrl} alt={ep.title} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition" />
+                        <img src={ep.thumbnailUrl || movie.thumbnailUrl} alt={ep.title} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition" />
                          <div className="absolute inset-0 flex items-center justify-center font-black text-lg drop-shadow-md text-white">
                             {ep.number}
                          </div>

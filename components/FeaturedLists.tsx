@@ -9,11 +9,13 @@ interface ListColumnProps {
 }
 
 const ListColumn: React.FC<ListColumnProps> = ({ title, movies, onPlay }) => {
+  if (!movies || movies.length === 0) return null;
+  
   return (
     <div className="flex flex-col gap-4">
       <h3 className="text-[#facc15] font-bold text-xl mb-2">{title}</h3>
       <div className="flex flex-col gap-4">
-        {movies.map((movie) => (
+        {movies.slice(0, 5).map((movie) => (
           <div 
             key={movie.id} 
             className="flex gap-4 group cursor-pointer hover:bg-white/5 p-2 rounded-lg transition-colors"
@@ -26,6 +28,9 @@ const ListColumn: React.FC<ListColumnProps> = ({ title, movies, onPlay }) => {
                 alt={movie.title} 
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                 loading="lazy"
+                onError={(e) => {
+                     e.currentTarget.src = "https://via.placeholder.com/100x150/1a1c21/ffffff?text=IMG";
+                }}
               />
             </div>
 
@@ -75,16 +80,16 @@ const FeaturedLists: React.FC<FeaturedListsProps> = ({
     <div className="px-4 md:px-12 py-12">
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8">
         <div>
-           <ListColumn title="Top Airing" movies={topAiring} onPlay={onPlay} />
+           <ListColumn title="Paling Hits Sekarang" movies={topAiring} onPlay={onPlay} />
         </div>
         <div>
-           <ListColumn title="Most Popular" movies={mostPopular} onPlay={onPlay} />
+           <ListColumn title="Favorit Sepanjang Masa" movies={mostPopular} onPlay={onPlay} />
         </div>
         <div>
-           <ListColumn title="Most Favorite" movies={mostFavorite} onPlay={onPlay} />
+           <ListColumn title="Rekomendasi YouTube" movies={mostFavorite} onPlay={onPlay} />
         </div>
         <div>
-           <ListColumn title="Latest Completed" movies={latestCompleted} onPlay={onPlay} />
+           <ListColumn title="Baru Tamat" movies={latestCompleted} onPlay={onPlay} />
         </div>
       </div>
     </div>

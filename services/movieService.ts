@@ -4,20 +4,53 @@ import { Movie, Episode, Stream } from '../types';
 const SOURCES = {
     SAMEHADAKU: 'https://v1.samehadaku.how', // Indonesian Anime Site
     MOVIEBOX: 'https://moviebox.ph', // Western Movies (Global)
+    YOUTUBE_SEARCH: 'https://www.youtube.com/results?search_query=',
+    DAILYMOTION_API: 'https://api.dailymotion.com/videos',
 };
 
 const JIKAN_API = 'https://api.jikan.moe/v4';
 
-// List of Legal YouTube Anime (Prioritize Indonesia Channels: Muse Indonesia, Ani-One Indo)
+// --- EXPANDED LEGAL YOUTUBE CATALOG (INDONESIA REGION) ---
 const YOUTUBE_CATALOG = [
-    { title: 'Spy x Family', ytId: 'PLwLSw1_eDZl0fx5q3f15q2g4W33TfF_Wb' }, // Muse Indo
-    { title: 'One Punch Man', ytId: 'PLwLSw1_eDZl1n9fJOuLlgR6ZVhM8O-7Xb' }, // Muse Indo
-    { title: 'Dr. STONE', ytId: 'PLwLSw1_eDZl0k95_6P9K34lXz841P1Vj_' }, // Muse Indo
-    { title: 'Mob Psycho 100', ytId: 'PLwLSw1_eDZl2AouX4kL6-k_iZ7RQUjN6H' }, // Muse Indo
-    { title: 'Tensei Shitara Slime Datta Ken', ytId: 'PLwLSw1_eDZl2eP86ZJD1W49W1b2F8F6sB' }, // Muse Indo
-    { title: 'Mushoku Tensei', ytId: 'PLwLSw1_eDZl33k_744_41y9fK3XwMmsf2' }, // Muse Indo
-    { title: 'Classroom of the Elite', ytId: 'PLwLSw1_eDZl08aDUEvY2Ygl2yJ8XvUezR' }, // Muse Indo
-    { title: 'Frieren', ytId: 'PLwLSw1_eDZl2d3L2C3r37F4i_1p6o9-wM' } // Muse Indo
+    // --- MUSE INDONESIA ---
+    { title: 'Frieren: Beyond Journey\'s End', ytId: 'PLwLSw1_eDZl2d3L2C3r37F4i_1p6o9-wM', channel: 'Muse Indonesia' },
+    { title: 'Spy x Family', ytId: 'PLwLSw1_eDZl0fx5q3f15q2g4W33TfF_Wb', channel: 'Muse Indonesia' },
+    { title: 'Tensei Shitara Slime Datta Ken', ytId: 'PLwLSw1_eDZl2eP86ZJD1W49W1b2F8F6sB', channel: 'Muse Indonesia' },
+    { title: 'Mushoku Tensei Season 1', ytId: 'PLwLSw1_eDZl33k_744_41y9fK3XwMmsf2', channel: 'Muse Indonesia' },
+    { title: 'Classroom of the Elite', ytId: 'PLwLSw1_eDZl08aDUEvY2Ygl2yJ8XvUezR', channel: 'Muse Indonesia' },
+    { title: 'One Punch Man', ytId: 'PLwLSw1_eDZl1n9fJOuLlgR6ZVhM8O-7Xb', channel: 'Muse Indonesia' },
+    { title: 'Mob Psycho 100', ytId: 'PLwLSw1_eDZl2AouX4kL6-k_iZ7RQUjN6H', channel: 'Muse Indonesia' },
+    { title: 'Dr. STONE', ytId: 'PLwLSw1_eDZl0k95_6P9K34lXz841P1Vj_', channel: 'Muse Indonesia' },
+    { title: 'Hyouka', ytId: 'PLwLSw1_eDZl0i_8yJj9rFdhQ4J4Dk9v57', channel: 'Muse Indonesia' },
+    { title: 'Hunter x Hunter', ytId: 'PLwLSw1_eDZl1s7w9-i_r9Qj9yZ8Q4k1a', channel: 'Muse Indonesia' },
+    { title: 'Kage no Jitsuryokusha', ytId: 'PLwLSw1_eDZl0f_xH-G7C8iXjR_jQ2Zq_', channel: 'Muse Indonesia' },
+    { title: 'Tokyo Revengers', ytId: 'PLwLSw1_eDZl0rKVf6vt4y6bk3Q_b_C8XQ', channel: 'Muse Indonesia' },
+
+    // --- ANI-ONE INDONESIA / ASIA ---
+    { title: 'Chainsaw Man', ytId: 'PLxSscENEp7JiG259lWz1yG6_j50nQp_p', channel: 'Ani-One Asia' },
+    { title: 'Haikyuu', ytId: 'PLxSscENEp7Jj7fOsh_vnCcS0r_n_3bYF-', channel: 'Ani-One Asia' },
+    { title: 'Blue Lock', ytId: 'PLxSscENEp7JhO1D9Q3R_C5c-L_j_Kj_q', channel: 'Ani-One Asia' },
+    { title: 'Jujutsu Kaisen', ytId: 'PLxSscENEp7JilsOQy_y0X61V3BdbG6YQ5', channel: 'Ani-One Asia' },
+    { title: 'Dr. Stone New World', ytId: 'PLxSscENEp7JjS958_1-G9-C7-C57gL2h-', channel: 'Ani-One Asia' },
+    
+    // --- GUNDAM INFO ---
+    { title: 'Mobile Suit Gundam: The Witch from Mercury', ytId: 'PLJV1h9xQ7Hx_jXtO1GTqjdDfC5Q5tuON9', channel: 'GundamInfo' },
+    { title: 'Gundam Build Metaverse', ytId: 'PLJV1h9xQ7Hx_p49Tj_1A9s5otvY--SshK', channel: 'GundamInfo' },
+
+    // --- TROPICS / POPS ANIME / LAINNYA ---
+    { title: 'Slam Dunk', ytId: 'PL0-e22Q_tG3pHMh_J869M0O5P_90bMvC-', channel: 'POPS Anime' }, 
+    { title: 'Detective Conan', ytId: 'PL0-e22Q_tG3oFm58dJdOqjSpP-65L7gO-', channel: 'POPS Anime' }, 
+    { title: 'Initial D', ytId: 'PL0-e22Q_tG3o-MiwB23NfTIEIDL1Tjbv2', channel: 'POPS Anime' }, 
+];
+
+const BSTATION_TITLES = [
+    'Naruto: Shippuuden',
+    'Boruto: Naruto Next Generations',
+    'Demon Slayer',
+    'Black Clover',
+    'Bleach',
+    'One Piece',
+    'Fate/stay night'
 ];
 
 // --- PROXY ROTATION SYSTEM ---
@@ -42,13 +75,15 @@ const cleanText = (text: string | undefined | null) => {
     return text ? text.trim().replace(/\s+/g, ' ') : '';
 };
 
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 const fetchHTML = async (targetUrl: string): Promise<string> => {
   let lastError;
   for (const proxy of PROXIES) {
     try {
       const proxyUrl = proxy.url(targetUrl);
       const controller = new AbortController();
-      const id = setTimeout(() => controller.abort(), 15000); 
+      const id = setTimeout(() => controller.abort(), 10000); // 10s timeout
 
       const res = await fetch(proxyUrl, { 
           signal: controller.signal,
@@ -82,6 +117,144 @@ const parseDOM = (html: string) => {
   return parser.parseFromString(html, 'text/html');
 };
 
+// --- YOUTUBE SPECIFIC HELPERS ---
+
+/**
+ * Enhanced Search: Parses ytInitialData for accuracy, falls back to regex.
+ */
+const searchYouTubeVideoId = async (query: string): Promise<string | null> => {
+    try {
+        const url = `${SOURCES.YOUTUBE_SEARCH}${encodeURIComponent(query)}`;
+        const html = await fetchHTML(url);
+        
+        // Strategy 1: Parse JSON (Most Accurate)
+        const jsonMatch = html.match(/var ytInitialData\s*=\s*({.+?});/);
+        if (jsonMatch) {
+            try {
+                const data = JSON.parse(jsonMatch[1]);
+                const contents = data.contents?.twoColumnSearchResultsRenderer?.primaryContents?.sectionListRenderer?.contents?.[0]?.itemSectionRenderer?.contents;
+                if (contents) {
+                    for (const item of contents) {
+                        if (item.videoRenderer) {
+                            return item.videoRenderer.videoId;
+                        }
+                    }
+                }
+            } catch (e) { /* ignore parse error */ }
+        }
+        
+        // Strategy 2: Regex Fallback
+        const videoIdMatch = html.match(/"videoId":"([a-zA-Z0-9_-]{11})"/);
+        if (videoIdMatch && videoIdMatch[1]) {
+            return videoIdMatch[1];
+        }
+
+        return null;
+    } catch (e) {
+        console.warn("YouTube Search Failed:", e);
+        return null;
+    }
+};
+
+/**
+ * Scrapes a YouTube playlist page to get REAL video IDs and titles.
+ * This avoids relying on "index" which causes playback errors.
+ */
+export const getYouTubePlaylistEpisodes = async (playlistId: string): Promise<Episode[]> => {
+    try {
+        const url = `https://www.youtube.com/playlist?list=${playlistId}`;
+        const html = await fetchHTML(url);
+        
+        const jsonMatch = html.match(/var ytInitialData\s*=\s*({.+?});/);
+        if (!jsonMatch) return [];
+        
+        const data = JSON.parse(jsonMatch[1]);
+        
+        // Traverse deeply nested JSON structure of YouTube
+        const tabs = data.contents?.twoColumnBrowseResultsRenderer?.tabs;
+        const tab = tabs?.find((t: any) => t.tabRenderer?.selected);
+        const contents = tab?.tabRenderer?.content?.sectionListRenderer?.contents;
+        const itemSection = contents?.find((c: any) => c.itemSectionRenderer);
+        const videos = itemSection?.itemSectionRenderer?.contents?.[0]?.playlistVideoListRenderer?.contents;
+        
+        if (!videos) return [];
+        
+        return videos.map((item: any, index: number) => {
+            const vid = item.playlistVideoRenderer;
+            if (!vid) return null;
+            
+            // Prefer high res thumbnail
+            const thumb = vid.thumbnail?.thumbnails?.reduce((prev: any, current: any) => {
+                return (prev.width > current.width) ? prev : current;
+            })?.url || '';
+
+            return {
+                id: vid.videoId,
+                number: parseInt(vid.index?.simpleText) || index + 1,
+                title: vid.title?.runs?.[0]?.text || `Episode ${index + 1}`,
+                description: 'Tonton Video Ini',
+                thumbnailUrl: thumb,
+                videoUrl: '',
+                duration: vid.lengthText?.simpleText || '24m',
+                slug: vid.videoId // IMPORTANT: Use Direct ID as slug
+            };
+        }).filter((e: any) => e !== null);
+
+    } catch (e) {
+        console.error("Playlist Scrape Failed", e);
+        return [];
+    }
+};
+
+// --- DAILYMOTION HELPER ---
+
+/**
+ * Search Dailymotion for videos based on query (e.g., Short Dramas)
+ */
+const getDailymotionData = async (query: string, type: 'Anime' | 'Drama' = 'Drama'): Promise<Movie[]> => {
+    try {
+        // Dailymotion API Public Search
+        // fields: id, title, thumbnail_url, description, duration, owner.username
+        const url = `${SOURCES.DAILYMOTION_API}?fields=id,title,thumbnail_720_url,description,duration,owner.username&limit=15&search=${encodeURIComponent(query)}&sort=visited`;
+        
+        const res = await fetch(url);
+        const data = await res.json();
+        
+        if (!data.list) return [];
+
+        return data.list.map((item: any) => ({
+            id: item.id,
+            slug: `dm-${item.id}`, // Custom slug prefix for Dailymotion
+            title: item.title,
+            description: item.description || `Tonton ${type} seru ini di Dailymotion.`,
+            thumbnailUrl: item.thumbnail_720_url || item.thumbnail_url,
+            coverUrl: item.thumbnail_720_url || item.thumbnail_url,
+            videoUrl: '',
+            genre: [type, 'Shorts'],
+            rating: 'N/A',
+            year: '2024',
+            duration: Math.floor(item.duration / 60) + 'm',
+            type: type,
+            status: 'Released',
+            source: 'dailymotion',
+            episodes: [{
+                id: item.id,
+                number: 1,
+                title: item.title,
+                thumbnailUrl: item.thumbnail_720_url,
+                videoUrl: '',
+                duration: Math.floor(item.duration / 60) + 'm',
+                slug: `dm-${item.id}`
+            }]
+        }));
+
+    } catch (e) {
+        console.warn(`Dailymotion fetch failed for ${query}`, e);
+        return [];
+    }
+};
+
+
 // --- JIKAN MAPPERS ---
 const mapJikanToMovie = (data: any): Movie => {
     return {
@@ -97,14 +270,13 @@ const mapJikanToMovie = (data: any): Movie => {
         year: data.year || (data.aired?.from ? new Date(data.aired.from).getFullYear() : 'Unknown'),
         duration: data.duration || '24m',
         type: data.type || 'Anime',
-        status: data.status, // "Currently Airing" or "Finished Airing"
+        status: data.status,
         totalEpisodes: data.episodes,
         source: 'scrape'
     };
 };
 
 // --- MOVIEBOX SCRAPER HELPERS ---
-
 const extractMovieBoxHome = (doc: Document): Movie[] => {
     const movies: Movie[] = [];
     const items = doc.querySelectorAll('.items article, .filmlist .item, .movies-list .movie-item, article.item');
@@ -231,29 +403,35 @@ const extractStreams = (doc: Document): Stream[] => {
         }
     });
     
-    // Fallback for Samehadaku specific players (often hidden in JS or distinct divs)
-    // This is a basic catch-all for mirrors
-    const mirrorLinks = doc.querySelectorAll('.mirror option, .server-list li a');
-    mirrorLinks.forEach((el, idx) => {
-         let url = el.getAttribute('value') || el.getAttribute('href');
-         if(url && url.startsWith('http')) {
-             streams.push({
-                 server: `Mirror ${idx+1}`,
-                 resolution: 'HD',
-                 url: url,
-                 type: 'iframe'
-             })
-         }
-    });
-
     return streams.filter((v,i,a)=>a.findIndex(t=>(t.url===v.url))===i);
 };
 
 // --- EXPORTED SERVICE FUNCTIONS ---
 
-export const getYouTubeAnimeData = async (): Promise<Movie[]> => {
-    const promises = YOUTUBE_CATALOG.map(async (item) => {
+export const getBstationData = async (): Promise<Movie[]> => {
+    const results: Movie[] = [];
+    for (const title of BSTATION_TITLES) {
         try {
+            await delay(300);
+            const res = await fetch(`${JIKAN_API}/anime?q=${encodeURIComponent(title)}&limit=1`);
+            const json = await res.json();
+            if (json.data && json.data.length > 0) {
+                 const movie = mapJikanToMovie(json.data[0]);
+                 movie.source = 'scrape'; 
+                 results.push(movie);
+            }
+        } catch(e) { /* ignore */ }
+    }
+    return results;
+};
+
+export const getYouTubeAnimeData = async (): Promise<Movie[]> => {
+    const results: Movie[] = [];
+    const catalog = [...YOUTUBE_CATALOG]; 
+
+    for (const item of catalog) {
+        try {
+            await delay(350); 
             const res = await fetch(`${JIKAN_API}/anime?q=${encodeURIComponent(item.title)}&limit=1`);
             const json = await res.json();
             
@@ -262,29 +440,38 @@ export const getYouTubeAnimeData = async (): Promise<Movie[]> => {
                 const movie = mapJikanToMovie(animeData);
                 movie.source = 'youtube';
                 movie.youtubeId = item.ytId;
-                movie.episodes = Array.from({ length: animeData.episodes || 12 }, (_, i) => ({
+                
+                const epCount = animeData.episodes || 12;
+                
+                // Construct "Smart" Slugs for Search Fallback
+                movie.episodes = Array.from({ length: epCount }, (_, i) => ({
                     id: `yt-${item.ytId}-${i+1}`,
                     number: i + 1,
                     title: `Episode ${i + 1}`,
                     thumbnailUrl: movie.thumbnailUrl,
-                    videoUrl: `https://www.youtube.com/embed/videoseries?list=${item.ytId}&index=${i}`,
+                    videoUrl: '', 
                     duration: '24m',
-                    slug: `YT:${item.ytId}:${i}` 
+                    // FORMAT: YT_V2 : PLAYLIST_ID : INDEX : ENCODED_TITLE : CHANNEL_NAME
+                    slug: `YT_V2:${item.ytId}:${i}:${encodeURIComponent(item.title)}:${encodeURIComponent(item.channel || '')}` 
                 }));
-                return movie;
+                results.push(movie);
             }
-        } catch (e) { /* ignore */ }
-        return null;
-    });
-    const results = await Promise.all(promises);
-    return results.filter((m): m is Movie => m !== null);
+        } catch (e) { 
+            console.warn(`Skipping ${item.title} due to API error.`);
+        }
+    }
+    return results;
 };
 
-export const getHomeData = async (): Promise<{ ongoing: Movie[], completed: Movie[], youtube: Movie[], movies: Movie[] }> => {
+export const getHomeData = async (): Promise<{ 
+    ongoing: Movie[], 
+    completed: Movie[], 
+    youtube: Movie[], 
+    movies: Movie[], 
+    bstation: Movie[],
+    shortDramas: Movie[] // NEW RETURN TYPE
+}> => {
     try {
-        // Fetch from Jikan API v4
-        // 'now' = New Anime (Baru/Sedang Tayang)
-        // 'top' = Old/Classic/Legendary (Lama)
         const [nowRes, topRes] = await Promise.all([
             fetch(`${JIKAN_API}/seasons/now?limit=25`),
             fetch(`${JIKAN_API}/top/anime?filter=bypopularity&limit=25`)
@@ -296,29 +483,35 @@ export const getHomeData = async (): Promise<{ ongoing: Movie[], completed: Movi
         const ongoing = nowData.data?.map(mapJikanToMovie) || [];
         const completed = topData.data?.map(mapJikanToMovie) || [];
         
-        // Fetch YouTube Data (Muse Indo)
-        const youtube = await getYouTubeAnimeData();
+        const [youtube, bstation, dmShorts, dmAnime] = await Promise.all([
+            getYouTubeAnimeData(),
+            getBstationData(),
+            getDailymotionData('asian short drama', 'Drama'),
+            getDailymotionData('anime sub indo', 'Anime')
+        ]);
 
-        // Fetch MovieBox Data
+        const shortDramas = [...dmShorts, ...dmAnime];
+
         let movies: Movie[] = [];
         try {
             const movieHtml = await fetchHTML(SOURCES.MOVIEBOX);
             const movieDoc = parseDOM(movieHtml);
             movies = extractMovieBoxHome(movieDoc);
-        } catch (err) {
-            console.warn("Failed to scrape MovieBox:", err);
-        }
+        } catch (err) { /* ignore */ }
 
-        return { ongoing, completed, youtube, movies };
+        return { ongoing, completed, youtube, movies, bstation, shortDramas };
     } catch (e) {
         console.error("Home Data Error:", e);
-        return { ongoing: [], completed: [], youtube: [], movies: [] };
+        return { ongoing: [], completed: [], youtube: [], movies: [], bstation: [], shortDramas: [] };
     }
 };
 
 export const getAnimeDetail = async (slug: string): Promise<Movie | null> => {
-    
-    // CASE 1: Jikan ID (Numeric)
+    if (slug.startsWith('dm-')) {
+        // Dailymotion detail logic (simplified, usually the ID is enough)
+        return null; // VideoPlayer handles details from list usually
+    }
+
     if (/^\d+$/.test(slug)) {
         try {
             const [infoRes, epRes] = await Promise.all([
@@ -339,66 +532,113 @@ export const getAnimeDetail = async (slug: string): Promise<Movie | null> => {
                     thumbnailUrl: movie.thumbnailUrl, 
                     videoUrl: '',
                     duration: '24m',
-                    // SMART LOGIC: Add "Sub Indo" to the search query specifically for Indonesian audience
                     slug: `SEARCH:Nonton ${movie.title} Episode ${ep.mal_id} Sub Indo`
                 }));
             }
             return movie;
-        } catch (e) {
-            console.error("Jikan Detail Error:", e);
-            return null;
-        }
-    } 
-    
-    // CASE 2: Scraped URL (MovieBox or others)
-    else if (slug.startsWith('http')) {
+        } catch (e) { return null; }
+    } else if (slug.startsWith('http')) {
         try {
             const html = await fetchHTML(slug);
             const doc = parseDOM(html);
             return extractMovieBoxDetails(doc, slug);
-        } catch (e) {
-            console.error("Scraper Detail Error:", e);
-            return null;
-        }
+        } catch (e) { return null; }
     }
-
     return null;
 };
 
 export const getEpisodeStreams = async (slug: string): Promise<Stream[]> => {
-    // 0. YouTube
-    if (slug.startsWith('YT:')) {
-        const parts = slug.split(':');
-        const listId = parts[1];
-        const index = parseInt(parts[2] || '0');
+    const origin = window.location.origin;
+
+    // 0. Dailymotion Handling
+    if (slug.startsWith('dm-')) {
+        const videoId = slug.replace('dm-', '');
         return [{
-            server: 'YouTube Official (Muse/Ani-One Indo)',
-            resolution: '1080p',
-            url: `https://www.youtube.com/embed?listType=playlist&list=${listId}&index=${index}`,
-            type: 'youtube'
+            server: 'Dailymotion',
+            resolution: 'HD',
+            url: `https://www.dailymotion.com/embed/video/${videoId}?autoplay=1`,
+            type: 'dailymotion'
         }];
+    }
+
+    // 1. Direct YouTube ID (from Scraped Playlist)
+    // IDs are usually 11 chars. slug "YT_V2..." is longer.
+    if (slug.length === 11 && /^[a-zA-Z0-9_-]+$/.test(slug)) {
+         return [{
+            server: 'Server YouTube (Official)',
+            resolution: '1080p',
+            url: `https://www.youtube.com/embed/${slug}?autoplay=1&modestbranding=1&rel=0`,
+            type: 'youtube'
+         }];
+    }
+
+    // 2. YT_V2 Logic (Legacy/Fallback)
+    if (slug.startsWith('YT') || slug.startsWith('YT_V2')) {
+        let listId = '';
+        let index = 0;
+        let title = '';
+        let channel = '';
+        let smartId: string | null = null;
+
+        if (slug.startsWith('YT_V2:')) {
+            // New Format: YT_V2:LIST:INDEX:TITLE:CHANNEL
+            const parts = slug.split(':');
+            listId = parts[1];
+            index = parseInt(parts[2] || '0');
+            title = decodeURIComponent(parts[3] || '');
+            channel = decodeURIComponent(parts[4] || '');
+
+            // Try to find the specific video ID via search
+            const episodeNum = index + 1;
+            const searchQuery = `${channel} ${title} Episode ${episodeNum}`;
+            console.log("Smart Searching YouTube for:", searchQuery);
+            smartId = await searchYouTubeVideoId(searchQuery);
+        } else {
+            // Legacy/Fallback Format: YT:LIST:INDEX
+            const parts = slug.split(':');
+            listId = parts[1];
+            index = parseInt(parts[2] || '0');
+        }
+        
+        const streams: Stream[] = [];
+
+        // Priority: Smart Search Result (Direct Video)
+        if (smartId) {
+            streams.push({
+                server: 'Server Utama (Auto Match)',
+                resolution: '1080p',
+                url: `https://www.youtube.com/embed/${smartId}?origin=${origin}&modestbranding=1&rel=0&autoplay=1`,
+                type: 'youtube'
+            });
+        }
+
+        // Fallback: Playlist Index (Often causes Error 153 but good as backup)
+        streams.push({
+            server: 'Server Playlist (Backup)',
+            resolution: 'HD',
+            url: `https://www.youtube.com/embed?listType=playlist&list=${listId}&index=${index}&origin=${origin}&modestbranding=1&rel=0`,
+            type: 'youtube'
+        });
+
+        return streams;
     }
 
     let targetUrl = slug;
 
-    // 1. Resolve Search (For Anime from Jikan -> Samehadaku)
+    // 3. Resolve Search (Samehadaku)
     if (slug.startsWith('SEARCH:')) {
         const query = slug.replace('SEARCH:', '');
-        console.log("Mencari Stream Indo untuk:", query);
         try {
-            // Clean query but keep "Sub Indo"
             const cleanQuery = query.replace(/[^\w\s\d]/g, ' ').trim();
             const searchUrl = `${SOURCES.SAMEHADAKU}/?s=${encodeURIComponent(cleanQuery)}`;
             const html = await fetchHTML(searchUrl);
             const doc = parseDOM(html);
             
-            // Try to find specific episode post first
             const episodeLink = doc.querySelector('.post-show ul li a, .animepost .animposx a, .ml-item a');
             
             if (episodeLink) {
                 targetUrl = episodeLink.getAttribute('href') || '';
             } else {
-                console.warn("Tidak ada hasil di Samehadaku untuk:", cleanQuery);
                 return [];
             }
         } catch (e) {
@@ -406,14 +646,13 @@ export const getEpisodeStreams = async (slug: string): Promise<Stream[]> => {
         }
     }
 
-    // 2. Scrape Streams (For MovieBox URLs or Resolved Anime URLs)
+    // 4. Scrape Streams
     if (targetUrl && targetUrl.startsWith('http')) {
         try {
             const html = await fetchHTML(targetUrl);
             const doc = parseDOM(html);
             return extractStreams(doc);
         } catch (e) {
-            console.error("Scraping error:", e);
             return [];
         }
     }

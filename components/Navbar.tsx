@@ -1,14 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Bell, User } from 'lucide-react';
+import { Search, Bell, User as UserIcon, LogOut, Heart } from 'lucide-react';
+import AuthModal from './AuthModal';
+import { useAuth } from '../context/AuthContext';
 
 interface NavbarProps {
   onSearch: (query: string) => void;
   onNavigate: (page: string) => void;
+  activeCategory: string;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ onSearch, onNavigate }) => {
+const Navbar: React.FC<NavbarProps> = ({ onSearch, onNavigate, activeCategory }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [searchValue, setSearchValue] = useState('');
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  
+  const { user, isAuthenticated, logout, notifications } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -28,7 +35,15 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch, onNavigate }) => {
     onSearch(searchValue);
   };
 
+  const navItems = [
+    { id: 'home', label: 'Beranda' },
+    { id: 'series', label: 'Serial TV' },
+    { id: 'movies', label: 'Film' },
+    { id: 'anime', label: 'Anime' },
+  ];
+
   return (
+    <>
     <nav className={`fixed w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-[#0b0c0f] shadow-lg' : 'bg-gradient-to-b from-black/80 to-transparent'}`}>
       <div className="px-4 md:px-12 py-4 flex flex-row items-center justify-between">
         <div className="flex items-center gap-8">
@@ -38,12 +53,25 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch, onNavigate }) => {
           >
             HULU<span className="text-white">INDO</span>
           </div>
-          <ul className="hidden md:flex flex-row gap-6 text-gray-300 font-medium text-sm">
-            <li className="hover:text-white cursor-pointer transition" onClick={() => onNavigate('home')}>Beranda</li>
-            <li className="hover:text-white cursor-pointer transition">Serial TV</li>
-            <li className="hover:text-white cursor-pointer transition">Film</li>
-            <li className="hover:text-white cursor-pointer transition">Anime</li>
-            <li className="hover:text-white cursor-pointer transition">Koleksi Saya</li>
+          <ul className="hidden md:flex flex-row gap-6 font-medium text-sm">
+            {navItems.map((item) => (
+              <li 
+                key={item.id}
+                className={`cursor-pointer transition hover:text-white ${activeCategory === item.id ? 'text-white font-bold border-b-2 border-[#1ce783] pb-1' : 'text-gray-300'}`}
+                onClick={() => onNavigate(item.id)}
+              >
+                {item.label}
+              </li>
+            ))}
+            {/* My List moved to nav item if logged in */}
+            {isAuthenticated && (
+                <li 
+                className={`cursor-pointer transition hover:text-white ${activeCategory === 'collection' ? 'text-white font-bold border-b-2 border-[#1ce783] pb-1' : 'text-gray-300'}`}
+                onClick={() => onNavigate('collection')}
+                >
+                    Daftar Saya
+                </li>
+            )}
           </ul>
         </div>
 
@@ -60,13 +88,64 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch, onNavigate }) => {
           </form>
           
           <Search className="md:hidden w-6 h-6 text-gray-200" />
-          <Bell className="w-5 h-5 text-gray-300 hover:text-white cursor-pointer" />
-          <div className="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center text-white font-bold cursor-pointer hover:bg-green-500 transition">
-            <User className="w-5 h-5" />
+          
+          {/* Notifications */}
+          <div className="relative group">
+            <Bell className="w-5 h-5 text-gray-300 hover:text-white cursor-pointer" />
+            {notifications.filter(n => !n.isRead).length > 0 && (
+                <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+            )}
+            {/* Simple Dropdown for Notifs */}
+            <div className="absolute right-0 top-8 w-64 bg-[#1a1c21] border border-gray-700 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition p-4 hidden md:block">
+                <h4 className="text-white font-bold mb-2 text-sm border-b border-gray-700 pb-1">Notifikasi Admin</h4>
+                <div className="space-y-2 max-h-40 overflow-y-auto">
+                    {notifications.length > 0 ? notifications.map(n => (
+                        <div key={n._id} className="text-xs text-gray-300 bg-black/30 p-2 rounded">
+                            {n.message}
+                        </div>
+                    )) : <div className="text-xs text-gray-500">Tidak ada notifikasi baru</div>}
+                </div>
+            </div>
           </div>
+          
+          {/* User Auth */}
+          {isAuthenticated ? (
+             <div className="relative">
+                <div 
+                    className="w-8 h-8 rounded-full bg-gradient-to-tr from-green-600 to-green-400 flex items-center justify-center text-white font-bold cursor-pointer hover:scale-105 transition shadow-[0_0_10px_#1ce783]"
+                    onClick={() => setShowUserMenu(!showUserMenu)}
+                >
+                    {user?.username.charAt(0).toUpperCase()}
+                </div>
+                
+                {showUserMenu && (
+                    <div className="absolute right-0 top-10 w-48 bg-[#1a1c21] border border-gray-700 rounded-lg shadow-xl p-2 flex flex-col gap-1">
+                        <div className="px-3 py-2 border-b border-gray-700 mb-1">
+                            <p className="text-white font-bold text-sm truncate">{user?.username}</p>
+                            <p className="text-gray-500 text-xs truncate">{user?.email}</p>
+                        </div>
+                        <button onClick={() => onNavigate('collection')} className="text-left px-3 py-2 text-gray-300 hover:bg-white/10 hover:text-white rounded text-sm flex items-center gap-2">
+                            <Heart className="w-4 h-4" /> Daftar Saya
+                        </button>
+                        <button onClick={logout} className="text-left px-3 py-2 text-red-400 hover:bg-white/10 rounded text-sm flex items-center gap-2">
+                            <LogOut className="w-4 h-4" /> Keluar
+                        </button>
+                    </div>
+                )}
+             </div>
+          ) : (
+             <button 
+                onClick={() => setShowAuthModal(true)}
+                className="bg-[#1ce783] text-black text-sm font-bold px-4 py-2 rounded hover:bg-[#15bd6b] transition"
+             >
+                Masuk
+             </button>
+          )}
         </div>
       </div>
     </nav>
+    {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} />}
+    </>
   );
 };
 
