@@ -1,13 +1,9 @@
 import { GoogleGenAI } from "@google/genai";
 
-const apiKey = process.env.API_KEY || '';
-const ai = new GoogleGenAI({ apiKey });
+// Initialize the client with the API key directly from process.env
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export const getGeminiRecommendation = async (query: string): Promise<string> => {
-  if (!apiKey) {
-    return "API Key is missing. Please configure the environment.";
-  }
-
   try {
     const model = 'gemini-3-flash-preview';
     const systemInstruction = `You are a helpful and enthusiastic movie and anime assistant for a streaming platform called 'StreamHulu'.
