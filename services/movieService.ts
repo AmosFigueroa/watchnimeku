@@ -1,78 +1,70 @@
 import { Movie, Episode } from '../types';
 
-// API Configuration for MastayY/kumanime-api
-const API_MIRRORS = [
-  'https://kumanime-api.vercel.app/api',
-  'https://kumanime-api-git-master-mastayy.vercel.app/api',
-  // Localhost fallback for local development
-  'http://localhost:3000/api'
-];
+const TARGET_BASE = 'https://kuramanime.tel';
 
-// Alternate CORS Proxies
-const CORS_PROXIES = [
-    // Pindahkan corsproxy.io ke urutan pertama (biasanya lebih kuat)
-    'https://corsproxy.io/?',
-    
-    // Tambahkan Thingproxy (Cadangan 1)
-    'https://thingproxy.freeboard.io/fetch/',
-    
-    // Tambahkan CodeTabs (Cadangan 2)
-    'https://api.codetabs.com/v1/proxy?quest=',
-    
-    // Taruh AllOrigins di paling bawah sebagai opsi terakhir
-    'https://api.allorigins.win/raw?url=',
+// Array of proxies to bypass CORS and Anti-Bot (Rotated if one fails)
+// api.codetabs.com is often reliable for text/html
+// corsproxy.io is fast but sometimes strict
+// allorigins is good fallback
+const PROXIES = [
+    (url: string) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+    (url: string) => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+    (url: string) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
 ];
 
 /**
- * Robust fetch function that tries multiple mirrors and proxy fallbacks.
+ * Helper: Try to fetch text/html from the target using proxies
  */
-const fetchSafe = async (endpoint: string) => {
-  // 1. Try Direct Mirrors
-  for (const base of API_MIRRORS) {
+const fetchHTML = async (path: string): Promise<string> => {
+  // Ensure path starts with /
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  const targetUrl = `${TARGET_BASE}${cleanPath}`;
+  
+  for (const proxyGen of PROXIES) {
     try {
-      const url = `${base}${endpoint}`;
+      const url = proxyGen(targetUrl);
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 3000); 
-
-      const res = await fetch(url, { signal: controller.signal });
-      clearTimeout(timeoutId);
+      // Short timeout to fail fast if a proxy is hanging
+      const id = setTimeout(() => controller.abort(), 6000);
+      
+      const res = await fetch(url, { 
+        // Remove custom User-Agent to avoid CORS Preflight (OPTIONS) failures on some proxies
+        signal: controller.signal
+      });
+      clearTimeout(id);
 
       if (res.ok) {
-        return await res.json();
+        const text = await res.text();
+        // Basic check for Cloudflare or Empty responses
+        if (text.length < 500 || text.includes('Just a moment') || text.includes('Attention Required!')) {
+            // Treat as failure to try next proxy
+            console.warn(`Proxy ${url} returned Cloudflare/Block page.`);
+            continue;
+        }
+        return text;
       }
     } catch (e) {
-      // Continue to next mirror
+      console.warn(`Proxy failed for ${targetUrl} via ${proxyGen('')}:`, e);
     }
   }
-
-  // 2. Try via Proxies
-  for (const proxy of CORS_PROXIES) {
-      try {
-        const target = `${API_MIRRORS[0]}${endpoint}`;
-        const url = `${proxy}${encodeURIComponent(target)}`;
-        
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000);
-        
-        const res = await fetch(url, { signal: controller.signal });
-        clearTimeout(timeoutId);
-
-        if (res.ok) return await res.json();
-      } catch (e) {
-         console.warn(`Proxy ${proxy} failed.`);
-      }
-  }
-
-  throw new Error("Unable to fetch data from any available source.");
+  throw new Error("All proxies failed to fetch data.");
 };
 
-// --- Mock Data for Fallback (Senior Engineering Pattern: Graceful Degradation) ---
+/**
+ * Helper: Parse HTML string into DOM
+ */
+const parseDOM = (html: string) => {
+  const parser = new DOMParser();
+  return parser.parseFromString(html, 'text/html');
+};
+
+// --- Mock Data for Fallback ---
 const FALLBACK_MOVIES: Movie[] = [
     {
         id: 'solo-leveling',
-        slug: 'solo-leveling',
-        title: 'Solo Leveling',
-        description: 'Ten years ago, "the Gate" appeared and connected the real world with the realm of magic and monsters. To combat these vile beasts, ordinary people received superhuman powers and became known as "Hunters".',
+        slug: 'anime/solo-leveling',
+        title: 'Solo Leveling (Demo/Fallback)',
+        description: 'Connection to anime source failed. This is demo content. The gate connected the real world with the realm of magic and monsters.',
         thumbnailUrl: 'https://cdn.myanimelist.net/images/anime/1164/141093.jpg',
         coverUrl: 'https://cdn.myanimelist.net/images/anime/1164/141093l.jpg',
         videoUrl: '',
@@ -82,234 +74,199 @@ const FALLBACK_MOVIES: Movie[] = [
         duration: '24m',
         type: 'anime',
         status: 'Ongoing'
-    },
-    {
-        id: 'one-piece',
-        slug: 'one-piece',
-        title: 'One Piece',
-        description: 'Gol D. Roger was known as the "Pirate King", the strongest and most infamous being to have sailed the Grand Line. The capture and execution of Roger by the World Government brought a change throughout the world.',
-        thumbnailUrl: 'https://cdn.myanimelist.net/images/anime/6/73245.jpg',
-        coverUrl: 'https://cdn.myanimelist.net/images/anime/6/73245l.jpg',
-        videoUrl: '',
-        genre: ['Adventure', 'Fantasy'],
-        rating: '8.7',
-        year: 1999,
-        duration: '24m',
-        type: 'anime',
-        status: 'Ongoing'
-    },
-    {
-        id: 'jujutsu-kaisen',
-        slug: 'jujutsu-kaisen',
-        title: 'Jujutsu Kaisen',
-        description: 'Idly indulging in baseless paranormal activities with the Occult Club, high schooler Yuuji Itadori spends his days at the clubroom or the hospital, where he visits his bedridden grandfather.',
-        thumbnailUrl: 'https://cdn.myanimelist.net/images/anime/1171/109222.jpg',
-        coverUrl: 'https://cdn.myanimelist.net/images/anime/1171/109222l.jpg',
-        videoUrl: '',
-        genre: ['Action', 'Supernatural'],
-        rating: '8.6',
-        year: 2020,
-        duration: '24m',
-        type: 'anime',
-        status: 'Completed'
-    },
-    {
-        id: 'frieren',
-        slug: 'sousou-no-frieren',
-        title: 'Frieren: Beyond Journey\'s End',
-        description: 'During their ten-year quest, the adventurer party of hero Himmel, priest Heiter, dwarf warrior Eisen, and elven mage Frieren defeat the Demon King and bring peace to the kingdom.',
-        thumbnailUrl: 'https://cdn.myanimelist.net/images/anime/1015/138006.jpg',
-        coverUrl: 'https://cdn.myanimelist.net/images/anime/1015/138006l.jpg',
-        videoUrl: '',
-        genre: ['Adventure', 'Drama', 'Fantasy'],
-        rating: '9.1',
-        year: 2023,
-        duration: '24m',
-        type: 'anime',
-        status: 'Completed'
-    },
-    {
-        id: 'kimetsu-no-yaiba',
-        slug: 'kimetsu-no-yaiba',
-        title: 'Demon Slayer: Kimetsu no Yaiba',
-        description: 'Ever since the death of his father, the burden of supporting the family has fallen upon Tanjirou Kamado\'s shoulders.',
-        thumbnailUrl: 'https://cdn.myanimelist.net/images/anime/1286/99889.jpg',
-        coverUrl: 'https://cdn.myanimelist.net/images/anime/1286/99889l.jpg',
-        videoUrl: '',
-        genre: ['Action', 'Demons'],
-        rating: '8.5',
-        year: 2019,
-        duration: '24m',
-        type: 'anime',
-        status: 'Completed'
     }
 ];
 
-// --- API Response Types (Kumanime Structure) ---
-interface KumanimeItem {
-  title: string;
-  slug: string;
-  thumb: string;
-  type?: string;
-  status?: string;
-  episode?: string;
-  uploaded_on?: string;
-}
-
-interface KumanimeDetail {
-  title: string;
-  thumb: string;
-  synopsis: string;
-  score: string;
-  status: string;
-  total_episode: string;
-  genre_list: { genre_name: string }[];
-  episode_list: { title: string; id: string; uploaded_on: string }[]; 
-}
-
-// --- Mapper Functions ---
-
-const mapKumanimeItemToMovie = (item: KumanimeItem, index: number): Movie => {
-  return {
-    id: item.slug || `anime-${index}`,
-    slug: item.slug,
-    title: item.title,
-    description: "Loading description...", 
-    thumbnailUrl: item.thumb || "https://via.placeholder.com/300x450?text=No+Image",
-    coverUrl: item.thumb || "https://via.placeholder.com/300x450?text=No+Image",
-    videoUrl: "", 
-    genre: ["Anime"],
-    rating: "N/A", 
-    year: new Date().getFullYear(),
-    duration: item.episode || "24m",
-    type: 'anime',
-    status: item.status || "Unknown"
-  };
-};
-
-// --- Public Async Methods ---
+// --- Main Functions ---
 
 export const getHomeData = async (): Promise<{ ongoing: Movie[], completed: Movie[] }> => {
   try {
-    const json = await fetchSafe('/home');
+    const html = await fetchHTML('/');
+    const doc = parseDOM(html);
     
-    // Kumanime API usually returns { status: true, data: { ongoing: [], completed: [] } }
-    const data = json.data || json; 
+    const scrapeSection = (selector: string): Movie[] => {
+      const items = doc.querySelectorAll(selector);
+      const movies: Movie[] = [];
+      
+      items.forEach((el, idx) => {
+        // Adapt selectors based on standard anime site structures
+        const titleEl = el.querySelector('h5 a, .product__item__text h5 a, .entry-title a, .title a');
+        const linkEl = el.querySelector('a');
+        const imgEl = el.querySelector('.product__item__pic, img');
+        
+        // Extract URL for thumbnail
+        let thumb = '';
+        if (imgEl) {
+           thumb = imgEl.getAttribute('data-setbg') || imgEl.getAttribute('src') || '';
+           if (thumb && !thumb.startsWith('http')) {
+               // Handle relative paths
+               if (thumb.startsWith('//')) thumb = `https:${thumb}`;
+               else thumb = `${TARGET_BASE}${thumb}`;
+           }
+        }
 
-    // Handle malformed responses gracefully
-    if (!data) throw new Error("Invalid data structure");
+        const link = linkEl?.getAttribute('href') || '';
+        // Clean slug: remove domain if present
+        // Handle cases where link is full URL
+        let slug = link.replace(TARGET_BASE, '');
+        // Remove trailing/leading slashes
+        slug = slug.replace(/^\/+|\/+$/g, '');
 
-    const ongoingList = Array.isArray(data.ongoing) ? data.ongoing : [];
-    const completedList = Array.isArray(data.completed) ? data.completed : [];
+        // Fallback for slug if empty (shouldn't happen on good scrape)
+        if (!slug && link) {
+             const parts = link.split('/');
+             slug = parts[parts.length - 1] || parts[parts.length - 2];
+        }
 
-    if (ongoingList.length === 0 && completedList.length === 0) throw new Error("Empty data");
-
-    const ongoing = ongoingList.map((item: any, idx: number) => mapKumanimeItemToMovie(item, idx));
-    const completed = completedList.map((item: any, idx: number) => mapKumanimeItemToMovie(item, idx + 100));
-
-    return { ongoing, completed };
-  } catch (error) {
-    console.warn("Using Fallback Data due to API Error:", error);
-    // Return fallback data so the UI isn't empty
-    return { 
-        ongoing: FALLBACK_MOVIES, 
-        completed: [...FALLBACK_MOVIES].reverse() 
+        if (titleEl && slug) {
+            movies.push({
+                id: slug || `anime-${idx}`,
+                slug: slug,
+                title: titleEl.textContent?.trim() || 'Unknown Title',
+                description: 'Watch now on StreamHulu',
+                thumbnailUrl: thumb || 'https://via.placeholder.com/200x300',
+                coverUrl: thumb || 'https://via.placeholder.com/200x300',
+                videoUrl: '',
+                genre: ['Anime'],
+                rating: 'Unknown',
+                year: new Date().getFullYear(),
+                duration: '24m',
+                type: 'anime',
+                status: 'Ongoing'
+            });
+        }
+      });
+      return movies;
     };
+
+    // Try multiple selectors common in anime sites (Kuramanime usually uses product__item)
+    let ongoing = scrapeSection('.product__item, .animepost');
+    let completed = scrapeSection('.popular__product .product__item, .recent-release .items');
+
+    // If scraping failed (DOM structure mismatch), use fallback
+    if (ongoing.length === 0) {
+        console.warn("Scraping returned 0 items, using fallback.");
+        return { ongoing: FALLBACK_MOVIES, completed: FALLBACK_MOVIES };
+    }
+
+    return { ongoing, completed: completed.length > 0 ? completed : ongoing.slice().reverse() };
+
+  } catch (error) {
+    console.error("Home Data Fetch Error:", error);
+    return { ongoing: FALLBACK_MOVIES, completed: FALLBACK_MOVIES };
   }
 };
 
 export const getAnimeDetail = async (slug: string): Promise<Movie | null> => {
-  // Check if it's a fallback ID
-  const fallbackMatch = FALLBACK_MOVIES.find(m => m.slug === slug);
-  if (fallbackMatch) {
-      // Return mock details with fake episodes
-      return {
-          ...fallbackMatch,
-          episodes: Array.from({ length: 12 }).map((_, i) => ({
-              id: `ep-${i+1}`,
-              number: i + 1,
-              title: `Episode ${i + 1}`,
-              thumbnailUrl: fallbackMatch.thumbnailUrl,
-              videoUrl: '',
-              duration: '24m',
-              slug: 'mock-stream'
-          }))
-      };
-  }
-
   try {
-    const json = await fetchSafe(`/anime/${slug}`);
-    const detail: KumanimeDetail = json.data || json;
+    // Determine path.
+    const path = slug.startsWith('anime/') ? `/${slug}` : `/anime/${slug}`;
+    const html = await fetchHTML(path);
+    const doc = parseDOM(html);
 
-    if (!detail) return null;
+    // Selectors
+    const title = doc.querySelector('.anime__details__title h3, .entry-title, h1.title')?.textContent?.trim() || "Unknown Title";
+    const synopsis = doc.querySelector('.anime__details__text p, .entry-content p, .description')?.textContent?.trim() || "No description available.";
+    
+    const thumbEl = doc.querySelector('.anime__details__pic, .thumb img');
+    let thumb = thumbEl?.getAttribute('data-setbg') || thumbEl?.getAttribute('src') || "";
+    if (thumb && !thumb.startsWith('http')) {
+       if (thumb.startsWith('//')) thumb = `https:${thumb}`;
+       else thumb = `${TARGET_BASE}${thumb}`;
+    }
 
-    const episodeList = detail.episode_list || [];
-    const episodes: Episode[] = episodeList.map((ep: any, idx: number) => ({
-      id: ep.id,
-      slug: ep.id, 
-      number: episodeList.length - idx,
-      title: ep.title,
-      thumbnailUrl: detail.thumb, 
-      videoUrl: "", 
-      duration: "24m",
-      description: `Uploaded: ${ep.uploaded_on}`
-    }));
+    // Parse Episodes
+    const episodeList: Episode[] = [];
+    // Selectors for episode list
+    const epLinks = doc.querySelectorAll('.anime__details__episodes a, .eplister ul li a, .episodes-list a');
+    
+    epLinks.forEach((el, idx) => {
+        const href = el.getAttribute('href') || '';
+        let epSlug = href.replace(TARGET_BASE, '');
+        epSlug = epSlug.replace(/^\/+|\/+$/g, '');
+
+        const text = el.textContent?.trim() || `Episode ${idx + 1}`;
+        const numberMatch = text.match(/\d+/);
+        const num = numberMatch ? parseInt(numberMatch[0]) : idx + 1;
+
+        episodeList.push({
+            id: `ep-${num}`,
+            number: num,
+            title: text,
+            description: 'Ready to watch',
+            thumbnailUrl: thumb,
+            videoUrl: '',
+            duration: '24m',
+            slug: epSlug,
+            streamUrl: ''
+        });
+    });
+
+    episodeList.sort((a, b) => b.number - a.number);
 
     return {
-      id: slug,
-      slug: slug,
-      title: detail.title,
-      description: detail.synopsis || "No description available.",
-      thumbnailUrl: detail.thumb,
-      coverUrl: detail.thumb,
-      videoUrl: "",
-      genre: detail.genre_list ? detail.genre_list.map((g: any) => g.genre_name) : [],
-      rating: detail.score || "N/A",
-      year: new Date().getFullYear(),
-      duration: "24m",
-      type: 'anime',
-      totalEpisodes: parseInt(detail.total_episode) || episodes.length,
-      status: detail.status,
-      episodes: episodes
+        id: slug,
+        slug: slug,
+        title: title,
+        description: synopsis,
+        thumbnailUrl: thumb,
+        coverUrl: thumb,
+        videoUrl: '',
+        genre: ['Anime'],
+        rating: '8.0',
+        year: 2024,
+        duration: '24m',
+        type: 'anime',
+        status: 'Ongoing',
+        episodes: episodeList,
+        totalEpisodes: episodeList.length
     };
+
   } catch (error) {
-    console.error("Failed to fetch details:", error);
+    console.error("Detail Fetch Error:", error);
     return null;
   }
 };
 
 export const getEpisodeStream = async (slug: string): Promise<string | null> => {
-  if (slug === 'mock-stream') {
-      // Return a sample video for mock data
-      return "https://www.w3schools.com/html/mov_bbb.mp4"; 
-  }
-
   try {
-    const json = await fetchSafe(`/episode/${slug}`);
-    const data = json.data || json;
+    const path = slug.includes('episode') ? `/${slug}` : `/episode/${slug}`; 
+    
+    const html = await fetchHTML(path);
+    const doc = parseDOM(html);
 
-    if (data.stream_link) return data.stream_link;
-    if (data.video_url) return data.video_url;
-    if (data.stream && data.stream.url) return data.stream.url;
-
-    if (Array.isArray(data.servers)) {
-        const bestServer = data.servers.find((s: any) => s.name?.toLowerCase().includes('desu') || s.name?.toLowerCase().includes('p')) || data.servers[0];
-        return bestServer?.url || bestServer?.iframe || null;
+    // Strategy 1: Find iframe directly (common in Kuramanime)
+    const iframes = doc.querySelectorAll('iframe');
+    for (let i = 0; i < iframes.length; i++) {
+        const src = iframes[i].getAttribute('src');
+        if (src && (src.includes('embed') || src.includes('player') || src.includes('google') || src.includes('blogger') || src.includes('youtube'))) {
+             if (src.startsWith('/')) return `${TARGET_BASE}${src}`;
+             return src;
+        }
     }
 
-    return null;
+    // Strategy 2: Dropdowns/Selects for mirrors
+    const options = doc.querySelectorAll('select.mirror option');
+    if (options.length > 0) {
+        const val = options[0].getAttribute('value');
+        if (val) {
+             if (val.startsWith('http')) return val;
+             try { return atob(val); } catch(e) {}
+        }
+    }
+
+    // Fallback: Use sample if none found (better than crashing or black screen)
+    console.warn("Could not extract clean video source. Returning sample.");
+    return "https://www.w3schools.com/html/mov_bbb.mp4"; 
+
   } catch (error) {
-    console.error("Failed to fetch stream:", error);
+    console.error("Stream Fetch Error:", error);
     return null;
   }
 };
 
 // --- Mock/Sync Placeholders ---
-
-export const getFeaturedMovie = (): Movie => {
-   return FALLBACK_MOVIES[0];
-};
-
+export const getFeaturedMovie = (): Movie => FALLBACK_MOVIES[0];
 export const getMoviesByCategory = (category: string): Movie[] => [];
 export const getTopAiring = (): Movie[] => [];
 export const getMostPopular = (): Movie[] => [];

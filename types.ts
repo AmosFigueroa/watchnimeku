@@ -28,6 +28,7 @@ export interface Movie {
   totalEpisodes?: number;
   episodes?: Episode[]; // List of episodes
   status?: string;
+  lastUpdated?: string;
 }
 
 export interface ChatMessage {
