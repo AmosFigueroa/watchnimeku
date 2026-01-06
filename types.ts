@@ -10,6 +10,13 @@ export interface Episode {
   streamUrl?: string;
 }
 
+export interface Stream {
+  server: string;
+  resolution: string; // '360p', '480p', '720p', '1080p', 'HD'
+  url: string;
+  type: 'iframe' | 'mp4';
+}
+
 export interface Movie {
   id: number | string;
   slug?: string; // Unique identifier for API
