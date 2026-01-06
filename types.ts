@@ -14,7 +14,7 @@ export interface Stream {
   server: string;
   resolution: string; // '360p', '480p', '720p', '1080p', 'HD'
   url: string;
-  type: 'iframe' | 'mp4' | 'youtube' | 'dailymotion';
+  type: 'iframe' | 'mp4' | 'youtube';
 }
 
 export interface Movie {
@@ -36,7 +36,7 @@ export interface Movie {
   episodes?: Episode[]; // List of episodes
   status?: string;
   lastUpdated?: string;
-  source?: 'scrape' | 'youtube' | 'dailymotion'; // New field
+  source?: 'scrape' | 'youtube' | 'external'; // Added 'external'
   youtubeId?: string; // Playlist or Video ID
 }
 

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Mic, Captions } from 'lucide-react';
 import { Movie } from '../types';
+import { useLanguage } from '../context/LanguageContext';
 
 interface ListColumnProps {
   title: string;
@@ -50,7 +51,7 @@ const ListColumn: React.FC<ListColumnProps> = ({ title, movies, onPlay }) => {
                 {/* Type Dot */}
                 <div className="flex items-center gap-1 text-gray-400 ml-1">
                    <span className="w-1 h-1 bg-gray-500 rounded-full"></span>
-                   <span className="truncate">{movie.duration}</span>
+                   <span className="truncate">{movie.year}</span>
                 </div>
               </div>
             </div>
@@ -76,20 +77,21 @@ const FeaturedLists: React.FC<FeaturedListsProps> = ({
   latestCompleted,
   onPlay 
 }) => {
+  const { t } = useLanguage();
   return (
     <div className="px-4 md:px-12 py-12">
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8">
         <div>
-           <ListColumn title="Paling Hits Sekarang" movies={topAiring} onPlay={onPlay} />
+           <ListColumn title={t.topAiring} movies={topAiring} onPlay={onPlay} />
         </div>
         <div>
-           <ListColumn title="Favorit Sepanjang Masa" movies={mostPopular} onPlay={onPlay} />
+           <ListColumn title={t.mostPopular} movies={mostPopular} onPlay={onPlay} />
         </div>
         <div>
-           <ListColumn title="Rekomendasi YouTube" movies={mostFavorite} onPlay={onPlay} />
+           <ListColumn title={t.mostFavorite} movies={mostFavorite} onPlay={onPlay} />
         </div>
         <div>
-           <ListColumn title="Baru Tamat" movies={latestCompleted} onPlay={onPlay} />
+           <ListColumn title={t.latestCompleted} movies={latestCompleted} onPlay={onPlay} />
         </div>
       </div>
     </div>

@@ -11,8 +11,9 @@ import { getHomeData, getAnimeDetail } from './services/movieService';
 import { Movie } from './types';
 import { MonitorPlay } from 'lucide-react';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { useLanguage } from './context/LanguageContext';
 
-// Internal Component to access Auth Context
+// Internal Component to access Contexts
 const AppContent = () => {
   const [currentView, setCurrentView] = useState<'home' | 'player'>('home');
   const [activeCategory, setActiveCategory] = useState('home');
@@ -24,32 +25,35 @@ const AppContent = () => {
   const [heroMovies, setHeroMovies] = useState<Movie[]>([]);
   const [ongoingMovies, setOngoingMovies] = useState<Movie[]>([]); 
   const [completedMovies, setCompletedMovies] = useState<Movie[]>([]); 
-  const [youtubeMovies, setYoutubeMovies] = useState<Movie[]>([]); 
-  const [bstationMovies, setBstationMovies] = useState<Movie[]>([]); 
-  const [scrapedMovies, setScrapedMovies] = useState<Movie[]>([]);
-  const [shortDramas, setShortDramas] = useState<Movie[]>([]); // NEW STATE
+  const [museMovies, setMuseMovies] = useState<Movie[]>([]); 
+  const [tropicsMovies, setTropicsMovies] = useState<Movie[]>([]); // New State
+  const [aniOneMovies, setAniOneMovies] = useState<Movie[]>([]); 
+  const [animeMovies, setAnimeMovies] = useState<Movie[]>([]);
+  const [boxOfficeMovies, setBoxOfficeMovies] = useState<Movie[]>([]);
   
-  const { user } = useAuth(); // Access user for Collection
+  const { user } = useAuth(); 
+  const { t } = useLanguage();
   const [watchlistMovies, setWatchlistMovies] = useState<Movie[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
-      const { ongoing, completed, youtube, movies, bstation, shortDramas } = await getHomeData();
+      const { ongoing, completed, youtube, tropics, movies, bstation, boxOffice } = await getHomeData();
       
       setOngoingMovies(ongoing);
       setCompletedMovies(completed);
-      setYoutubeMovies(youtube);
-      setBstationMovies(bstation);
-      setScrapedMovies(movies);
-      setShortDramas(shortDramas);
+      setMuseMovies(youtube); 
+      setTropicsMovies(tropics); // Set Tropics data
+      setAniOneMovies(bstation);
+      setAnimeMovies(movies);
+      setBoxOfficeMovies(boxOffice);
       
+      // Select Hero Movies
+      // Mix Jikan high quality metadata with Box Office scraped data
       const safeOngoing = ongoing.slice(0, 3);
-      const safeYoutube = youtube.slice(0, 2);
-      let combinedHero = [...safeOngoing, ...safeYoutube];
-      if (combinedHero.length === 0 && movies.length > 0) {
-        combinedHero = movies.slice(0, 5);
-      }
+      const safeBoxOffice = boxOffice.slice(0, 2); 
+      const combinedHero = [...safeOngoing, ...safeBoxOffice];
+      
       const uniqueHero = Array.from(new Set(combinedHero.map(m => m.id)))
         .map(id => combinedHero.find(m => m.id === id)!);
         
@@ -60,12 +64,11 @@ const AppContent = () => {
     fetchData();
   }, []);
 
-  // Fetch Watchlist details when Category is 'collection'
+  // Fetch Watchlist details
   useEffect(() => {
     if (activeCategory === 'collection' && user && user.watchlist) {
-        // Convert stored lightweight watchlist items back to Movie objects for display
         const mappedList: Movie[] = user.watchlist.map(item => ({
-            id: item.slug, // Use slug as ID for list
+            id: item.slug, 
             slug: item.slug,
             title: item.title,
             thumbnailUrl: item.thumbnailUrl,
@@ -77,20 +80,41 @@ const AppContent = () => {
             rating: 'N/A',
             year: '',
             duration: '',
-            source: item.slug.startsWith('YT') ? 'youtube' : (item.slug.startsWith('dm-') ? 'dailymotion' : 'scrape'),
-            youtubeId: item.slug.startsWith('YT') ? item.slug.split(':')[1] : undefined
+            source: item.type === 'Movie' ? 'external' : 'youtube', // Guess source type
+            youtubeId: undefined
         }));
         setWatchlistMovies(mappedList);
     }
   }, [activeCategory, user]);
 
-  const handleMovieSelect = (movie: Movie) => {
+  const handleMovieSelect = async (movie: Movie) => {
+    // If it's a YouTube RSS item, play directly
+    if (movie.source === 'youtube' && movie.youtubeId) {
+        setSelectedMovie(movie);
+        setCurrentView('player');
+        return;
+    } 
+    
+    // For others, open detail modal which handles further scraping
     setDetailMovie(movie);
   };
 
-  const handlePlayFromDetail = (movie: Movie) => {
+  const handlePlayFromDetail = async (movie: Movie) => {
     setDetailMovie(null);
-    setSelectedMovie(movie);
+    
+    // Check if we need to lazy-load the video URL for external movies
+    if (movie.source === 'external' && !movie.videoUrl) {
+         // UI could show a spinner here, but we'll do it in the player or assume getAnimeDetail fetched it
+         const enrichedMovie = await getAnimeDetail(movie.id.toString(), movie);
+         if (enrichedMovie) {
+             setSelectedMovie(enrichedMovie);
+         } else {
+             setSelectedMovie(movie); // Fallback
+         }
+    } else {
+        setSelectedMovie(movie);
+    }
+    
     setCurrentView('player');
   };
 
@@ -110,33 +134,34 @@ const AppContent = () => {
       case 'anime':
         return (
           <>
-             <MovieRow title="Anime Terbaru (Sedang Tayang)" movies={ongoingMovies} onMovieSelect={handleMovieSelect} />
-             <MovieRow title="Anime dari Dailymotion" movies={shortDramas.filter(m => m.type === 'Anime')} onMovieSelect={handleMovieSelect} />
-             <MovieRow title="Gratis & Legal (Youtube)" movies={youtubeMovies} onMovieSelect={handleMovieSelect} />
-             <MovieRow title="Populer di Bstation" movies={bstationMovies} onMovieSelect={handleMovieSelect} />
-             <MovieRow title="Anime Legendaris" movies={completedMovies} onMovieSelect={handleMovieSelect} />
+             <MovieRow title="Update Anime Resmi (Official)" movies={museMovies} onMovieSelect={handleMovieSelect} />
+             {tropicsMovies.length > 0 && (
+                <MovieRow title="Koleksi Subtitle Indonesia" movies={tropicsMovies} onMovieSelect={handleMovieSelect} />
+             )}
+             <MovieRow title={t.topAiring} movies={ongoingMovies} onMovieSelect={handleMovieSelect} />
+             <MovieRow title="Anime Asia Highlights" movies={aniOneMovies} onMovieSelect={handleMovieSelect} />
+             <MovieRow title={t.mostFavorite} movies={animeMovies} onMovieSelect={handleMovieSelect} />
           </>
         );
       case 'series':
         return (
           <>
-             <MovieRow title="Short Drama (Dailymotion)" movies={shortDramas.filter(m => m.type === 'Drama')} onMovieSelect={handleMovieSelect} />
-             <MovieRow title="Serial TV Populer" movies={bstationMovies} onMovieSelect={handleMovieSelect} />
-             <MovieRow title="Serial Anime Pilihan" movies={ongoingMovies} onMovieSelect={handleMovieSelect} />
-             <MovieRow title="Youtube Series" movies={youtubeMovies} onMovieSelect={handleMovieSelect} />
+             <MovieRow title="Simulcast Terbaru" movies={aniOneMovies} onMovieSelect={handleMovieSelect} />
+             <MovieRow title={t.tvSeries} movies={ongoingMovies} onMovieSelect={handleMovieSelect} />
           </>
         );
       case 'movies':
         return (
           <>
-             <MovieRow title="Film Barat & Box Office" movies={scrapedMovies} onMovieSelect={handleMovieSelect} />
-             <MovieRow title="Anime Movie" movies={completedMovies.filter(m => m.type === 'Movie' || m.type === 'Special')} onMovieSelect={handleMovieSelect} />
+             <MovieRow title="Film Bioskop Populer" movies={boxOfficeMovies} onMovieSelect={handleMovieSelect} />
+             <MovieRow title={t.mostFavorite} movies={animeMovies} onMovieSelect={handleMovieSelect} />
+             <MovieRow title={t.mostPopular} movies={completedMovies.filter(m => m.type === 'Movie')} onMovieSelect={handleMovieSelect} />
           </>
         );
       case 'collection':
         return (
           <div className="min-h-[50vh] px-12 py-8">
-             <h2 className="text-2xl font-bold text-white mb-6">Daftar Tontonan Saya</h2>
+             <h2 className="text-2xl font-bold text-white mb-6">{t.myList}</h2>
              {watchlistMovies.length > 0 ? (
                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                      {watchlistMovies.map(movie => (
@@ -158,7 +183,7 @@ const AppContent = () => {
              ) : (
                 <div className="flex flex-col items-center justify-center text-gray-500 h-64 border-2 border-dashed border-gray-800 rounded-xl">
                     <MonitorPlay className="w-16 h-16 mb-4 opacity-50" />
-                    <h2 className="text-xl font-bold text-white mb-2">Koleksi Masih Kosong</h2>
+                    <h2 className="text-xl font-bold text-white mb-2">{t.myList} Kosong</h2>
                     <p>Simpan anime dan film favoritmu di sini.</p>
                 </div>
              )}
@@ -168,23 +193,31 @@ const AppContent = () => {
       default:
         return (
           <>
-            <MovieRow title="Anime Terbaru (Sedang Tayang)" movies={ongoingMovies} onMovieSelect={handleMovieSelect} />
-            <MovieRow title="Drama Pendek & Anime (Dailymotion)" movies={shortDramas} onMovieSelect={handleMovieSelect} />
-            <MovieRow title="Gratis & Legal (Muse, Ani-One, Tropics)" movies={youtubeMovies} onMovieSelect={handleMovieSelect} />
-            <MovieRow title="Populer di Bstation (Bilibili)" movies={bstationMovies} onMovieSelect={handleMovieSelect} />
-            <MovieRow title="Film Populer" movies={scrapedMovies} onMovieSelect={handleMovieSelect} />
+            {/* YouTube Source 1: Muse -> Renamed to Official */}
+            <MovieRow title="Tayangan Anime Resmi (Gratis)" movies={museMovies} onMovieSelect={handleMovieSelect} />
+            
+            {/* YouTube Source 2: Tropics -> Renamed to Sub Indo */}
+            {tropicsMovies.length > 0 && (
+                <MovieRow title="Rekomendasi Subtitle Indonesia" movies={tropicsMovies} onMovieSelect={handleMovieSelect} />
+            )}
+            
+            {/* External Source: MovieBox -> Renamed to Box Office */}
+            <MovieRow title="Film Bioskop & Box Office" movies={boxOfficeMovies} onMovieSelect={handleMovieSelect} />
+            
+            <MovieRow title={t.topAiring} movies={ongoingMovies} onMovieSelect={handleMovieSelect} />
+            <MovieRow title="Trending Anime Asia" movies={aniOneMovies} onMovieSelect={handleMovieSelect} />
             
             <div className="bg-[#0f1014] mt-8 pt-4 pb-8 border-t border-gray-800">
                 <FeaturedLists 
                   topAiring={ongoingMovies}
-                  mostPopular={completedMovies} 
-                  mostFavorite={youtubeMovies} 
-                  latestCompleted={bstationMovies}
+                  mostPopular={boxOfficeMovies} 
+                  mostFavorite={animeMovies} 
+                  latestCompleted={museMovies}
                   onPlay={handleMovieSelect}
                 />
             </div>
 
-            <MovieRow title="Anime Lawas & Legendaris" movies={completedMovies} onMovieSelect={handleMovieSelect} />
+            <MovieRow title={t.mostPopular} movies={completedMovies} onMovieSelect={handleMovieSelect} />
           </>
         );
     }
@@ -218,8 +251,7 @@ const AppContent = () => {
           </main>
           
           <footer className="bg-black py-12 px-12 border-t border-gray-800 text-gray-500 text-sm">
-             {/* Footer content same as before */}
-             <div className="text-center">&copy; 2024 StreamHulu ID.</div>
+             <div className="text-center">&copy; 2024 StreamHulu ID. Data by Jikan API, YouTube & External Sources.</div>
           </footer>
 
           <AIAssistant />
@@ -244,7 +276,7 @@ const AppContent = () => {
   );
 };
 
-// Root Component Wraps with Provider
+// Root Wraps with Provider is handled in index.tsx
 function App() {
     return (
         <AuthProvider>

@@ -5,6 +5,7 @@ import { getAnimeDetail } from '../services/movieService';
 import CommentsSection from './CommentsSection';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
+import { useLanguage } from '../context/LanguageContext';
 
 interface MovieDetailModalProps {
   movie: Movie;
@@ -17,6 +18,7 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ movie: initialMovie
   const [loading, setLoading] = useState(false);
   const { user, isAuthenticated, updateWatchlist } = useAuth();
   const [isInWatchlist, setIsInWatchlist] = useState(false);
+  const { t } = useLanguage();
 
   // Check if movie is in user's watchlist
   useEffect(() => {
@@ -28,11 +30,12 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ movie: initialMovie
 
   useEffect(() => {
     const loadDetails = async () => {
-      if (initialMovie.source !== 'youtube' && initialMovie.slug) {
+      // Jikan needs fetching detailed info for better resolution images/episodes
+      if (initialMovie.id) {
         setLoading(true);
-        const details = await getAnimeDetail(initialMovie.slug);
+        const details = await getAnimeDetail(initialMovie.id.toString());
         if (details) {
-          setMovie(details);
+          setMovie(prev => ({...prev, ...details}));
         }
         setLoading(false);
       }
@@ -91,7 +94,7 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ movie: initialMovie
               </h2>
               
               <div className="flex flex-wrap items-center gap-4 text-sm md:text-base font-semibold text-gray-200">
-                <span className="text-[#1ce783]">{movie.rating !== 'N/A' ? `${movie.rating} Match` : 'Recommended'}</span>
+                <span className="text-[#1ce783]">{movie.rating !== 'N/A' ? `${movie.rating} Score` : 'Recommended'}</span>
                 <span className="text-gray-400">{movie.year}</span>
                 <span className="border border-gray-600 px-2 py-0.5 rounded text-xs uppercase">{movie.type}</span>
                 <span>{movie.duration}</span>
@@ -103,7 +106,7 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ movie: initialMovie
                   className="flex items-center gap-2 bg-white text-black px-8 py-3 rounded hover:bg-[#1ce783] hover:text-black transition font-bold text-lg shadow-lg"
                 >
                   <Play className="fill-black w-6 h-6" />
-                  Nonton
+                  {t.play}
                 </button>
                 <button 
                     onClick={handleToggleList}
@@ -120,13 +123,13 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ movie: initialMovie
             <div className="md:col-span-2 space-y-8">
                <div className="space-y-6">
                     <p className="text-gray-300 text-lg leading-relaxed">
-                        {movie.description}
+                        {movie.description || 'No description available for this title.'}
                     </p>
 
                     <div className="border-t border-gray-800 pt-6">
-                        <h3 className="text-xl font-bold text-white mb-4">Episode</h3>
+                        <h3 className="text-xl font-bold text-white mb-4">{t.episodes}</h3>
                         {loading ? (
-                        <div className="text-gray-500 animate-pulse">Memuat daftar episode...</div>
+                        <div className="text-gray-500 animate-pulse">{t.loading}</div>
                         ) : (
                         <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
                             {movie.episodes && movie.episodes.length > 0 ? (
@@ -142,15 +145,15 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ movie: initialMovie
                                         <Play className="absolute inset-0 m-auto text-white w-8 h-8 opacity-0 group-hover:opacity-100 transition transform scale-75 group-hover:scale-100" />
                                     </div>
                                     <div>
-                                    <h4 className="text-white font-bold text-sm md:text-base">{ep.title}</h4>
+                                    <h4 className="text-white font-bold text-sm md:text-base">{ep.title || `Episode ${ep.number}`}</h4>
                                     <p className="text-gray-400 text-xs md:text-sm line-clamp-2 mt-1">{ep.description || movie.title}</p>
                                     </div>
-                                    <div className="ml-auto text-xs text-gray-500">{ep.duration}</div>
+                                    <div className="ml-auto text-xs text-gray-500">{ep.duration || '24m'}</div>
                                 </div>
                                 ))
                             ) : (
                                 <div className="bg-gray-800/50 p-4 rounded text-center text-gray-400">
-                                Film Tunggal. Tekan "Nonton" untuk memulai.
+                                No episodes list available. Click Play to watch trailer.
                                 </div>
                             )}
                         </div>
@@ -164,7 +167,7 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ movie: initialMovie
 
             <div className="space-y-6 text-sm">
                <div>
-                 <span className="text-gray-500 block mb-1">Genre:</span>
+                 <span className="text-gray-500 block mb-1">{t.genre}:</span>
                  <div className="flex flex-wrap gap-2">
                    {movie.genre.map(g => (
                      <span key={g} className="text-white hover:text-[#1ce783] cursor-pointer transition">{g}</span>
@@ -172,15 +175,15 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ movie: initialMovie
                  </div>
                </div>
                <div>
-                 <span className="text-gray-500 block mb-1">Tahun:</span>
+                 <span className="text-gray-500 block mb-1">{t.year}:</span>
                  <span className="text-white">{movie.year}</span>
                </div>
                <div>
-                 <span className="text-gray-500 block mb-1">Durasi:</span>
+                 <span className="text-gray-500 block mb-1">{t.duration}:</span>
                  <span className="text-white">{movie.totalEpisodes ? `${movie.totalEpisodes} Eps` : movie.duration}</span>
                </div>
                <div>
-                 <span className="text-gray-500 block mb-1">Status:</span>
+                 <span className="text-gray-500 block mb-1">{t.status}:</span>
                  <span className="text-[#1ce783]">{movie.status || 'Released'}</span>
                </div>
             </div>
