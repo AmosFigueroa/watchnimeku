@@ -10,8 +10,17 @@ const API_MIRRORS = [
 
 // Alternate CORS Proxies
 const CORS_PROXIES = [
+    // Pindahkan corsproxy.io ke urutan pertama (biasanya lebih kuat)
+    'https://corsproxy.io/?',
+    
+    // Tambahkan Thingproxy (Cadangan 1)
+    'https://thingproxy.freeboard.io/fetch/',
+    
+    // Tambahkan CodeTabs (Cadangan 2)
+    'https://api.codetabs.com/v1/proxy?quest=',
+    
+    // Taruh AllOrigins di paling bawah sebagai opsi terakhir
     'https://api.allorigins.win/raw?url=',
-    'https://corsproxy.io/?'
 ];
 
 /**
