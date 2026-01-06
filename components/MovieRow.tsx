@@ -54,6 +54,10 @@ const MovieRow: React.FC<MovieRowProps> = ({ title, movies, onMovieSelect }) => 
                 src={movie.thumbnailUrl} 
                 alt={movie.title} 
                 className="w-full h-full object-cover transition duration-500"
+                onError={(e) => {
+                  // Fallback image if scraping fails
+                  e.currentTarget.src = "https://via.placeholder.com/220x320/1a1c21/ffffff?text=No+Image";
+                }}
               />
               
               {/* Dark Gradient Overlay */}
