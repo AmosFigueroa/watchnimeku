@@ -31,9 +31,9 @@ interface Translations {
 const translations: Record<Language, Translations> = {
   id: {
     home: 'Beranda',
-    tvSeries: 'Serial TV',
-    movies: 'Film',
-    anime: 'Anime',
+    tvSeries: 'Serial Anime',
+    movies: 'Film Anime',
+    anime: 'Daftar Anime',
     myList: 'Daftar Saya',
     search: 'Cari anime...',
     login: 'Masuk',
@@ -56,9 +56,9 @@ const translations: Record<Language, Translations> = {
   },
   en: {
     home: 'Home',
-    tvSeries: 'TV Series',
-    movies: 'Movies',
-    anime: 'Anime',
+    tvSeries: 'Anime Series',
+    movies: 'Anime Movies',
+    anime: 'Anime List',
     myList: 'My List',
     search: 'Search anime...',
     login: 'Login',

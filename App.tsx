@@ -49,8 +49,9 @@ const AppContent = () => {
       
       // Select Hero Movies
       const safeOngoing = ongoing.slice(0, 3);
+      // Ensure Hero also has high quality anime movies, not just TV series
       const safeBoxOffice = boxOffice.slice(0, 2); 
-      const combinedHero = [...safeOngoing, ...safeBoxOffice];
+      const combinedHero = [...safeBoxOffice, ...safeOngoing];
       
       // Ensure we have unique items before mapping
       const uniqueHero = Array.from(new Set(combinedHero.map(m => m.id)))
@@ -145,7 +146,7 @@ const AppContent = () => {
       case 'movies':
         return (
           <>
-             <MovieRow title="Bioskop Online" movies={boxOfficeMovies} onMovieSelect={handleMovieSelect} />
+             <MovieRow title="Anime Movie Hits" movies={boxOfficeMovies} onMovieSelect={handleMovieSelect} />
              <MovieRow title={t.mostFavorite} movies={animeMovies} onMovieSelect={handleMovieSelect} />
              <MovieRow title={t.mostPopular} movies={completedMovies.filter(m => m.type === 'Movie')} onMovieSelect={handleMovieSelect} />
           </>
@@ -187,13 +188,13 @@ const AppContent = () => {
           <>
             {/* 1. Official YT Sources (Muse & AniOne Combined Concept) */}
             <MovieRow title="Tayangan Resmi Indonesia (Gratis)" movies={museMovies} onMovieSelect={handleMovieSelect} />
-            <MovieRow title="Anime Asia Highlights" movies={aniOneMovies} onMovieSelect={handleMovieSelect} />
             
-            {/* 2. External Scraper (Moviebox) - Labelled generically */}
-            <MovieRow title="Box Office & Cinema" movies={boxOfficeMovies} onMovieSelect={handleMovieSelect} />
+            {/* 2. Anime Blockbusters - Replaced Western Box Office */}
+            <MovieRow title="Anime Blockbusters" movies={boxOfficeMovies} onMovieSelect={handleMovieSelect} />
             
             {/* 3. Global Data */}
             <MovieRow title={t.topAiring} movies={ongoingMovies} onMovieSelect={handleMovieSelect} />
+            <MovieRow title="Anime Asia Highlights" movies={aniOneMovies} onMovieSelect={handleMovieSelect} />
             
             <div className="bg-[#0f1014] mt-8 pt-4 pb-8 border-t border-gray-800">
                 <FeaturedLists 

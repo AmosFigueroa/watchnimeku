@@ -19,12 +19,13 @@ const FALLBACK_DATA = {
         { id: 'solo-1', title: 'Solo Leveling', thumbnailUrl: 'https://i.ytimg.com/vi/Bs_Z5Fj1h_Y/hqdefault.jpg', videoUrl: 'https://www.youtube.com/embed/Bs_Z5Fj1h_Y', youtubeId: 'Bs_Z5Fj1h_Y', type: 'Anime', year: 2024, rating: '8.7', duration: '24m', description: 'Sung Jinwoo bangkit dari hunter terlemah.', source: 'youtube' },
         { id: 'kaiju-8', title: 'Kaiju No. 8', thumbnailUrl: 'https://i.ytimg.com/vi/7v1d8W8_VvY/hqdefault.jpg', videoUrl: 'https://www.youtube.com/embed/7v1d8W8_VvY', youtubeId: '7v1d8W8_VvY', type: 'Anime', year: 2024, rating: '8.5', duration: '24m', description: 'Kafka Hibino ingin membasmi Kaiju.', source: 'youtube' }
     ],
-    BOX_OFFICE: [
-        { id: 'bo-1', title: 'Dune: Part Two', slug: 'dune-part-two', thumbnailUrl: 'https://image.tmdb.org/t/p/original/1pdfLvkbY9ohJlCjQH2CZjjYVvJ.jpg', coverUrl: 'https://image.tmdb.org/t/p/original/1pdfLvkbY9ohJlCjQH2CZjjYVvJ.jpg', type: 'Movie', year: 2024, rating: '8.8', duration: '2h 46m', description: 'Paul Atreides unites with Chani and the Fremen while on a warpath of revenge against the conspirators who destroyed his family.', videoUrl: 'https://www.youtube.com/embed/Way9Dexny3w', youtubeId: 'Way9Dexny3w', genre: ['Sci-Fi', 'Action'], source: 'external' },
-        { id: 'bo-2', title: 'Godzilla x Kong', slug: 'godzilla-x-kong', thumbnailUrl: 'https://image.tmdb.org/t/p/original/tMefBSflR6PGQLv7WvFPpKLZkyk.jpg', coverUrl: 'https://image.tmdb.org/t/p/original/tMefBSflR6PGQLv7WvFPpKLZkyk.jpg', type: 'Movie', year: 2024, rating: '7.2', duration: '1h 55m', description: 'Two ancient titans, Godzilla and Kong, clash in an epic battle as humans unravel their intertwined origins and connection to Skull Island\'s mysteries.', videoUrl: 'https://www.youtube.com/embed/lV1OOlGwExM', youtubeId: 'lV1OOlGwExM', genre: ['Action', 'Monster'], source: 'external' },
-        { id: 'bo-3', title: 'Kung Fu Panda 4', slug: 'kung-fu-panda-4', thumbnailUrl: 'https://image.tmdb.org/t/p/original/kDp1vUBnMpe8ak4rjgl3cLELqjU.jpg', coverUrl: 'https://image.tmdb.org/t/p/original/kDp1vUBnMpe8ak4rjgl3cLELqjU.jpg', type: 'Movie', year: 2024, rating: '7.6', duration: '1h 34m', description: 'Po is gearing up to become the Spiritual Leader of his Valley of Peace.', videoUrl: 'https://www.youtube.com/embed/_inKs4eeHiI', youtubeId: '_inKs4eeHiI', genre: ['Animation', 'Comedy'], source: 'external' },
-        { id: 'bo-4', title: 'Oppenheimer', slug: 'oppenheimer', thumbnailUrl: 'https://image.tmdb.org/t/p/original/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg', coverUrl: 'https://image.tmdb.org/t/p/original/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg', type: 'Movie', year: 2023, rating: '8.9', duration: '3h', description: 'The story of American scientist J. Robert Oppenheimer and his role in the development of the atomic bomb.', videoUrl: 'https://www.youtube.com/embed/uYPbbksJxIg', youtubeId: 'uYPbbksJxIg', genre: ['Drama', 'History'], source: 'external' },
-        { id: 'bo-5', title: 'Exhuma', slug: 'exhuma', thumbnailUrl: 'https://image.tmdb.org/t/p/original/pQYHouPsDf32FhIKYB72laNSJS.jpg', coverUrl: 'https://image.tmdb.org/t/p/original/pQYHouPsDf32FhIKYB72laNSJS.jpg', type: 'Movie', year: 2024, rating: '8.0', duration: '2h 14m', description: 'A wealthy family in LA experiences paranormal events.', videoUrl: 'https://www.youtube.com/embed/M2Z7v1rZtPQ', youtubeId: 'M2Z7v1rZtPQ', genre: ['Horror', 'Mystery'], source: 'external' }
+    // REPLACED WESTERN MOVIES WITH ANIME BLOCKBUSTERS
+    ANIME_BLOCKBUSTER: [
+        { id: 'suzume-1', title: 'Suzume no Tojimari', slug: 'suzume', thumbnailUrl: 'https://i.ytimg.com/vi/F7nQ0VUA7g0/hqdefault.jpg', coverUrl: 'https://images5.alphacoders.com/131/1310939.jpg', type: 'Movie', year: 2022, rating: '8.5', duration: '2h 2m', description: 'Seorang gadis berusia 17 tahun bernama Suzume membantu seorang pemuda misterius menutup pintu bencana yang muncul di seluruh Jepang.', videoUrl: 'https://www.youtube.com/embed/F7nQ0VUA7g0', youtubeId: 'F7nQ0VUA7g0', genre: ['Fantasy', 'Adventure'], source: 'youtube' },
+        { id: 'op-red-1', title: 'One Piece Film: Red', slug: 'one-piece-red', thumbnailUrl: 'https://i.ytimg.com/vi/89J_VjXvJ20/hqdefault.jpg', coverUrl: 'https://images6.alphacoders.com/123/1237978.jpg', type: 'Movie', year: 2022, rating: '8.3', duration: '1h 55m', description: 'Uta, penyanyi paling dicintai di dunia, menyembunyikan identitasnya. Ia akan tampil di depan umum untuk pertama kalinya di konser live.', videoUrl: 'https://www.youtube.com/embed/89J_VjXvJ20', youtubeId: '89J_VjXvJ20', genre: ['Action', 'Music'], source: 'youtube' },
+        { id: 'jjk-0', title: 'Jujutsu Kaisen 0', slug: 'jjk-0', thumbnailUrl: 'https://i.ytimg.com/vi/e8YBesRKq_U/hqdefault.jpg', coverUrl: 'https://images8.alphacoders.com/120/1205739.jpg', type: 'Movie', year: 2021, rating: '8.8', duration: '1h 45m', description: 'Yuta Okkotsu dihantui oleh teman masa kecilnya, Rika, yang meninggal dalam kecelakaan lalu lintas dan menjadi roh terkutuk.', videoUrl: 'https://www.youtube.com/embed/e8YBesRKq_U', youtubeId: 'e8YBesRKq_U', genre: ['Action', 'Supernatural'], source: 'youtube' },
+        { id: 'kny-mugen', title: 'Demon Slayer: Mugen Train', slug: 'mugen-train', thumbnailUrl: 'https://i.ytimg.com/vi/ATJYac_dORw/hqdefault.jpg', coverUrl: 'https://images.alphacoders.com/110/1106898.jpg', type: 'Movie', year: 2020, rating: '9.0', duration: '1h 57m', description: 'Tanjiro dan kawan-kawan bergabung dengan Hashira Api Kyojuro Rengoku untuk membasmi iblis di dalam kereta yang melaju cepat.', videoUrl: 'https://www.youtube.com/embed/ATJYac_dORw', youtubeId: 'ATJYac_dORw', genre: ['Action', 'Fantasy'], source: 'youtube' },
+        { id: 'kimi-no-nawa', title: 'Your Name (Kimi no Na wa)', slug: 'your-name', thumbnailUrl: 'https://i.ytimg.com/vi/a4ZNp-X42tQ/hqdefault.jpg', coverUrl: 'https://images3.alphacoders.com/762/762419.jpg', type: 'Movie', year: 2016, rating: '9.3', duration: '1h 52m', description: 'Dua remaja asing bertukar tubuh secara misterius dan mulai jatuh cinta satu sama lain.', videoUrl: 'https://www.youtube.com/embed/a4ZNp-X42tQ', youtubeId: 'a4ZNp-X42tQ', genre: ['Romance', 'Drama'], source: 'youtube' }
     ]
 };
 
@@ -127,10 +128,10 @@ const fetchYoutubeRSS = async (channelId: string, channelName: string, fallbackK
     }
 };
 
-// "Fake" Scraper that returns high quality static data because real client-side scraping is blocked
+// "Fake" Scraper that now returns Anime Blockbusters instead of Western Movies
 const fetchMovieBoxScraper = async (): Promise<Movie[]> => {
     // Return robust static data to ensure the "Movies" section is never empty
-    return FALLBACK_DATA.BOX_OFFICE as Movie[];
+    return FALLBACK_DATA.ANIME_BLOCKBUSTER as Movie[];
 };
 
 export const getHomeData = async () => {
@@ -173,11 +174,11 @@ export const getHomeData = async () => {
         return {
             ongoing: finalOngoing,
             completed: finalPopular,
-            movies: animeMovies.length > 0 ? animeMovies : FALLBACK_DATA.BOX_OFFICE,
+            movies: animeMovies.length > 0 ? animeMovies : FALLBACK_DATA.ANIME_BLOCKBUSTER,
             youtube: youtubeData.length > 0 ? youtubeData : FALLBACK_DATA.MUSE,
             bstation: bstationData.length > 0 ? bstationData : FALLBACK_DATA.ANI_ONE,
             tropics: getResult(5, FALLBACK_DATA.MUSE),
-            boxOffice: getResult(6, FALLBACK_DATA.BOX_OFFICE)
+            boxOffice: getResult(6, FALLBACK_DATA.ANIME_BLOCKBUSTER)
         };
 
     } catch (error) {
@@ -188,16 +189,16 @@ export const getHomeData = async () => {
             completed: FALLBACK_DATA.MUSE as Movie[],
             youtube: FALLBACK_DATA.MUSE as Movie[],
             tropics: FALLBACK_DATA.MUSE as Movie[],
-            movies: FALLBACK_DATA.BOX_OFFICE as Movie[],
+            movies: FALLBACK_DATA.ANIME_BLOCKBUSTER as Movie[],
             bstation: FALLBACK_DATA.ANI_ONE as Movie[],
-            boxOffice: FALLBACK_DATA.BOX_OFFICE as Movie[]
+            boxOffice: FALLBACK_DATA.ANIME_BLOCKBUSTER as Movie[]
         };
     }
 };
 
 export const getAnimeDetail = async (id: string, movie?: Movie): Promise<Movie | undefined> => {
     // If it's a static fallback movie, return it as is
-    if (movie && movie.source === 'external') {
+    if (movie && (movie.source === 'external' || movie.source === 'youtube')) {
         return movie;
     }
 
