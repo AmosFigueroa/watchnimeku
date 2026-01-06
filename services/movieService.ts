@@ -7,7 +7,7 @@ const SOURCES = {
 
 const JIKAN_API = 'https://api.jikan.moe/v4';
 
-// --- PROXY ROTATION SYSTEM (Mimics requests.Session) ---
+// --- PROXY ROTATION SYSTEM ---
 const PROXIES = [
     {
         // CodeTabs: Best for full HTML
@@ -26,15 +26,7 @@ const PROXIES = [
     }
 ];
 
-// --- UTILS (Mimics Python helpers) ---
-
-const buildUrl = (base: string, path: string) => {
-    if (!path) return '';
-    if (path.startsWith('http')) return path;
-    const cleanBase = base.replace(/\/+$/, '');
-    const cleanPath = path.startsWith('/') ? path : `/${path}`;
-    return `${cleanBase}${cleanPath}`;
-};
+// --- UTILS ---
 
 const cleanText = (text: string | undefined | null) => {
     return text ? text.trim().replace(/\s+/g, ' ') : '';
@@ -88,176 +80,46 @@ const parseDOM = (html: string) => {
   return parser.parseFromString(html, 'text/html');
 };
 
-const fetchMalCover = async (query: string): Promise<string | null> => {
-    try {
-        const cleanQuery = query.replace(/Episode\s+\d+.*/i, '').trim();
-        const res = await fetch(`${JIKAN_API}/anime?q=${encodeURIComponent(cleanQuery)}&limit=1`);
-        const data = await res.json();
-        if (data.data && data.data.length > 0) {
-            return data.data[0].images.jpg.large_image_url;
-        }
-    } catch (e) { /* ignore */ }
-    return null;
-};
+// --- JIKAN MAPPERS ---
 
-// --- SCRAPER ENGINE ---
-
-/**
- * Extracts Home Page Data
- */
-const extractHomeData = (doc: Document): Movie[] => {
-    const results: Movie[] = [];
-    // Selectors for "Update Anime"
-    const items = doc.querySelectorAll('.post-show ul li, .animepost, .main_content .post-show li');
-
-    items.forEach((el) => {
-        const titleEl = el.querySelector('.entry-title a, .title a, h2 a');
-        const linkEl = el.querySelector('a');
-        const imgEl = el.querySelector('.thumb img, .content-thumb img, img');
-        
-        let thumb = imgEl?.getAttribute('src') || imgEl?.getAttribute('data-src') || '';
-        if (thumb.includes('data:image') && imgEl?.getAttribute('data-src')) {
-            thumb = imgEl.getAttribute('data-src') || '';
-        }
-        if (thumb.startsWith('//')) thumb = `https:${thumb}`;
-        if (!thumb || thumb.includes('placeholder')) thumb = '';
-
-        const title = cleanText(titleEl?.textContent);
-        const href = linkEl?.getAttribute('href') || '';
-        
-        // Remove "Episode X" from title to get Series title
-        const cleanTitle = title.replace(/Episode\s+\d+.*/i, '').trim();
-
-        if (title && href) {
-            results.push({
-                id: href, 
-                slug: href,
-                title: cleanTitle || title,
-                description: `Latest: ${title}`,
-                thumbnailUrl: thumb,
-                coverUrl: thumb, 
-                videoUrl: '',
-                genre: ['Anime'],
-                rating: 'New',
-                year: new Date().getFullYear(),
-                duration: '24m',
-                type: 'anime',
-                status: 'Ongoing'
-            });
-        }
-    });
-    return results;
-};
-
-/**
- * Extracts Anime Detail Data (Synopsis, Episodes)
- */
-const extractDetailData = (doc: Document, url: string, originalMovie?: Movie): Movie => {
-    // 1. Info extraction
-    let title = cleanText(doc.querySelector('h1.entry-title')?.textContent?.replace('Nonton Anime', ''));
-    if (!title) title = originalMovie?.title || "Anime Detail";
-
-    const desc = cleanText(doc.querySelector('.entry-content p, .desc, .sinopsis')?.textContent) || "Deskripsi belum tersedia.";
-    
-    // 2. Image extraction
-    let thumb = doc.querySelector('.thumb img, .infoanime img')?.getAttribute('src') || originalMovie?.thumbnailUrl || '';
-    if (thumb.startsWith('//')) thumb = `https:${thumb}`;
-
-    // 3. Metadata
-    const rating = cleanText(doc.querySelector('.rating strong')?.textContent) || 'N/A';
-    const genre: string[] = [];
-    doc.querySelectorAll('.genre-info a').forEach(el => genre.push(cleanText(el.textContent)));
-
-    // 4. Episode List Extraction
-    const episodes: Episode[] = [];
-    // Samehadaku usually has lists in .lstepsiode
-    const epLinks = doc.querySelectorAll('.lstepsiode.listeps ul li, .eplister ul li');
-
-    epLinks.forEach((el) => {
-        const link = el.querySelector('a');
-        const epUrl = link?.getAttribute('href') || '';
-        const epTitle = cleanText(link?.textContent); // e.g., "Episode 12"
-        const date = cleanText(el.querySelector('.date')?.textContent);
-
-        // Parse number
-        const epNumMatch = epTitle.match(/Episode\s+(\d+)/i) || epTitle.match(/\s+(\d+)$/);
-        const epNum = epNumMatch ? parseInt(epNumMatch[1]) : 0;
-
-        if (epUrl) {
-            episodes.push({
-                id: epUrl,
-                slug: epUrl,
-                number: epNum,
-                title: `Episode ${epNum}`,
-                description: date,
-                thumbnailUrl: thumb,
-                videoUrl: '',
-                duration: '24m'
-            });
-        }
-    });
-
-    // Sort episodes (Newest first usually, but we might want oldest first for logic, let's keep site order)
-    
-    // If empty (maybe single ep page), create dummy
-    if (episodes.length === 0) {
-        episodes.push({
-            id: url,
-            slug: url,
-            number: 1,
-            title: title,
-            thumbnailUrl: thumb,
-            videoUrl: '',
-            duration: '24m'
-        });
-    }
-
+const mapJikanToMovie = (data: any): Movie => {
     return {
-        id: url,
-        slug: url,
-        title: title,
-        description: desc,
-        thumbnailUrl: thumb,
-        coverUrl: thumb,
-        videoUrl: '',
-        genre: genre.length > 0 ? genre : ['Anime'],
-        rating: rating,
-        year: '2024',
-        duration: '24m',
-        type: 'anime',
-        episodes: episodes,
-        status: 'Ongoing'
+        id: data.mal_id,
+        slug: data.mal_id.toString(),
+        title: data.title,
+        description: data.synopsis || "No synopsis available.",
+        thumbnailUrl: data.images?.jpg?.large_image_url || data.images?.jpg?.image_url || '',
+        coverUrl: data.images?.jpg?.large_image_url || data.images?.jpg?.image_url || '',
+        videoUrl: '', // Not available from Jikan
+        genre: data.genres?.map((g: any) => g.name) || [],
+        rating: data.score ? `${data.score}` : 'N/A',
+        year: data.year || (data.aired?.from ? new Date(data.aired.from).getFullYear() : 'Unknown'),
+        duration: data.duration || '24m',
+        type: data.type || 'Anime',
+        status: data.status,
+        totalEpisodes: data.episodes
     };
 };
 
-/**
- * Extracts Video Streams (Resolutions/Servers)
- */
+// --- STREAM EXTRACTOR ---
+
 const extractStreams = (doc: Document): Stream[] => {
     const streams: Stream[] = [];
-    
-    // Method 1: Check for server tab selectors (common in Samehadaku)
-    // Often in #server-list or similar ID
-    const serverDivs = doc.querySelectorAll('#server ul li div, .server_option div');
-    
-    // If specific structure isn't found, look for iframes generally
-    const iframes = doc.querySelectorAll('iframe');
-    
-    // Common video hosts to white-list
-    const VALID_HOSTS = ['blogger', 'kurama', 'mp4upload', 'streamsb', 'dood', 'file', 'archive', 'youtube', 'ok.ru'];
+    const VALID_HOSTS = ['blogger', 'kurama', 'mp4upload', 'streamsb', 'dood', 'file', 'archive', 'youtube', 'ok.ru', 'gdrive', 'zippyshare'];
 
-    // 1. Gather all Iframes
+    // 1. Gather Iframes
+    const iframes = doc.querySelectorAll('iframe');
     iframes.forEach((iframe, idx) => {
         const src = iframe.getAttribute('src') || iframe.getAttribute('data-src') || '';
         if (!src) return;
 
-        const isAd = src.includes('google') || src.includes('facebook') || src.includes('mgid');
-        const isValid = VALID_HOSTS.some(host => src.includes(host)) || src.includes('/play/');
+        const isAd = src.includes('google') || src.includes('facebook') || src.includes('mgid') || src.includes('ads');
+        const isValid = VALID_HOSTS.some(host => src.includes(host)) || src.includes('/play/') || src.includes('embed');
 
         if (isValid && !isAd) {
             const cleanSrc = src.startsWith('//') ? `https:${src}` : src;
             streams.push({
-                server: `Server ${idx + 1} (Default)`,
+                server: `Server ${idx + 1}`,
                 resolution: 'Auto',
                 url: cleanSrc,
                 type: 'iframe'
@@ -265,107 +127,150 @@ const extractStreams = (doc: Document): Stream[] => {
         }
     });
 
-    // 2. Parse "Download" links usually below player for resolutions (360, 480, 720, 1080)
-    // Samehadaku structure: .download-eps ul li
-    const downloadLinks = doc.querySelectorAll('.download-eps ul li strong, .download-eps ul li b');
-    
-    // This is tricky because usually these are direct download links, not streams. 
-    // But sometimes they contain links to Zippyshare/Gdrive which can be streamed.
-    // For now, we focus on the IFRAMES found in the DOM (the active players).
-
-    // 3. Look for Mirror Select (common in WP themes)
+    // 2. Parse "Mirror" Selects (Common in WordPress Anime Themes)
     const options = doc.querySelectorAll('select.mirror option');
-    options.forEach((opt, idx) => {
+    options.forEach((opt) => {
         let val = opt.getAttribute('value');
-        const label = opt.textContent || `Server ${idx}`;
+        const label = opt.textContent?.trim() || 'Server';
         
         if (val) {
-             // Decode base64 if needed
-             if (!val.startsWith('http')) {
-                 try { val = atob(val); } catch(e) {}
-             }
-             if (val.startsWith('http')) {
-                 streams.push({
-                     server: label.trim(),
-                     resolution: 'HD',
-                     url: val,
-                     type: 'iframe'
-                 });
-             }
+            // Decode base64 if needed
+            if (!val.startsWith('http')) {
+                try { val = atob(val); } catch(e) {}
+            }
+            if (val && val.startsWith('http')) {
+                streams.push({
+                    server: label,
+                    resolution: 'HD',
+                    url: val,
+                    type: 'iframe'
+                });
+            }
         }
     });
 
-    // Deduplicate
-    const uniqueStreams = streams.filter((v,i,a)=>a.findIndex(t=>(t.url===v.url))===i);
-    
-    // If no streams, return empty
-    return uniqueStreams;
-};
+    // 3. Parse explicit lists (e.g. "360p", "480p" links) if available
+    // Structure: .download-eps a (often download links, but sometimes streamable)
+    // We stick to iframes for now as they are safer for streaming directly.
 
+    // Deduplicate by URL
+    return streams.filter((v,i,a)=>a.findIndex(t=>(t.url===v.url))===i);
+};
 
 // --- EXPORTED SERVICE FUNCTIONS ---
 
 export const getHomeData = async (): Promise<{ ongoing: Movie[], completed: Movie[] }> => {
     try {
-        const html = await fetchHTML(SOURCES.SAMEHADAKU);
-        const doc = parseDOM(html);
-        let ongoing = extractHomeData(doc);
+        // Fetch from Jikan API v4
+        const [nowRes, topRes] = await Promise.all([
+            fetch(`${JIKAN_API}/seasons/now?limit=20`),
+            fetch(`${JIKAN_API}/top/anime?filter=bypopularity&limit=20`)
+        ]);
 
-        // Enhance images with MAL if missing
-        const enhanced = await Promise.all(ongoing.slice(0, 10).map(async (m) => {
-            if (!m.thumbnailUrl) {
-                const cover = await fetchMalCover(m.title);
-                if (cover) return { ...m, thumbnailUrl: cover, coverUrl: cover };
-            }
-            return m;
-        }));
+        const nowData = await nowRes.json();
+        const topData = await topRes.json();
 
-        // Mock completed data using reversed ongoing for now to save bandwidth
-        return {
-            ongoing: enhanced,
-            completed: [...enhanced].reverse()
-        };
+        const ongoing = nowData.data?.map(mapJikanToMovie) || [];
+        const completed = topData.data?.map(mapJikanToMovie) || [];
+
+        return { ongoing, completed };
     } catch (e) {
-        console.error("Home Scraping Error:", e);
+        console.error("Jikan Home Error:", e);
         return { ongoing: [], completed: [] };
     }
 };
 
 export const getAnimeDetail = async (slug: string): Promise<Movie | null> => {
-    try {
-        const html = await fetchHTML(slug);
-        const doc = parseDOM(html);
-        const movie = extractDetailData(doc, slug);
-        
-        // Enhance image
-        if (!movie.thumbnailUrl) {
-            const cover = await fetchMalCover(movie.title);
-            if (cover) {
-                movie.thumbnailUrl = cover;
-                movie.coverUrl = cover;
-            }
-        }
-        return movie;
+    // Ensure we are using Jikan ID (numeric)
+    if (!/^\d+$/.test(slug)) return null;
 
+    try {
+        const [infoRes, epRes] = await Promise.all([
+            fetch(`${JIKAN_API}/anime/${slug}/full`),
+            fetch(`${JIKAN_API}/anime/${slug}/episodes`)
+        ]);
+
+        const info = await infoRes.json();
+        const eps = await epRes.json();
+
+        const movie = mapJikanToMovie(info.data);
+
+        // Map Episodes with "Search Slug"
+        // This slug tells getEpisodeStreams to search Samehadaku for this specific episode
+        if (eps.data && Array.isArray(eps.data)) {
+            movie.episodes = eps.data.map((ep: any) => ({
+                id: ep.mal_id.toString(),
+                number: ep.mal_id,
+                title: ep.title || `Episode ${ep.mal_id}`,
+                description: ep.aired ? new Date(ep.aired).toLocaleDateString() : 'Available',
+                thumbnailUrl: movie.thumbnailUrl, // Use series thumb as fallback
+                videoUrl: '',
+                duration: '24m',
+                // Construct a search query: "Naruto Shippuden Episode 5"
+                // We use a prefix "SEARCH:" to identify this logic in getEpisodeStreams
+                slug: `SEARCH:${movie.title} Episode ${ep.mal_id}`
+            }));
+        }
+
+        return movie;
     } catch (e) {
-        console.error("Detail Error:", e);
+        console.error("Jikan Detail Error:", e);
         return null;
     }
 };
 
 export const getEpisodeStreams = async (slug: string): Promise<Stream[]> => {
-    try {
-        const html = await fetchHTML(slug);
-        const doc = parseDOM(html);
-        const streams = extractStreams(doc);
-        return streams;
-    } catch (e) {
-        console.error("Stream Scraping Error:", e);
-        return [];
+    let targetUrl = slug;
+
+    // 1. Resolve Search Query (Bridge Jikan -> Samehadaku)
+    if (slug.startsWith('SEARCH:')) {
+        const query = slug.replace('SEARCH:', '');
+        console.log("Resolving Stream for:", query);
+        
+        try {
+            // Clean query for better search results
+            // e.g. "Bleach: Sennen Kessen-hen" -> "Bleach Sennen Kessen hen"
+            const cleanQuery = query.replace(/[^\w\s\d]/g, ' ').trim();
+            const searchUrl = `${SOURCES.SAMEHADAKU}/?s=${encodeURIComponent(cleanQuery)}`;
+            
+            const html = await fetchHTML(searchUrl);
+            const doc = parseDOM(html);
+            
+            // Find the best match. 
+            // Samehadaku usually lists episodes in .post-show or .animepost
+            // We want the first valid link that looks like an episode or anime page.
+            
+            // Strategy: Look for specific episode links first
+            const episodeLink = doc.querySelector('.post-show ul li a, .animepost .animposx a');
+            
+            if (episodeLink) {
+                targetUrl = episodeLink.getAttribute('href') || '';
+            } else {
+                console.warn("Stream resolution failed: No results found for", cleanQuery);
+                return [];
+            }
+        } catch (e) {
+            console.error("Stream resolution error:", e);
+            return [];
+        }
     }
+
+    // 2. Scrape Streams
+    if (targetUrl && targetUrl.startsWith('http')) {
+        try {
+            const html = await fetchHTML(targetUrl);
+            const doc = parseDOM(html);
+            return extractStreams(doc);
+        } catch (e) {
+            console.error("Scraping error:", e);
+            return [];
+        }
+    }
+
+    return [];
 };
 
-// Deprecated single stream function kept for compatibility if needed, but redirects to new one
+// Deprecated
 export const getEpisodeStream = async (slug: string): Promise<string | null> => {
     const streams = await getEpisodeStreams(slug);
     return streams.length > 0 ? streams[0].url : null;
