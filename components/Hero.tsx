@@ -44,17 +44,17 @@ const Hero: React.FC<HeroProps> = ({ movie, onPlay }) => {
             className="flex items-center gap-2 bg-white text-black px-6 md:px-8 py-3 rounded hover:bg-[#1ce783] hover:text-black transition-all font-bold text-lg"
           >
             <Play className="fill-black w-5 h-5" />
-            Watch Now
+            Mulai Nonton
           </button>
           
           <button className="flex items-center gap-2 bg-white/10 backdrop-blur-sm border-2 border-white/20 text-white px-4 py-3 rounded hover:bg-white/20 transition font-semibold">
             <Plus className="w-5 h-5" />
-            My List
+            Daftar Saya
           </button>
 
            <button className="flex items-center gap-2 bg-white/10 backdrop-blur-sm border-2 border-white/20 text-white px-4 py-3 rounded hover:bg-white/20 transition font-semibold">
             <Info className="w-5 h-5" />
-            Details
+            Detail
           </button>
         </div>
       </div>

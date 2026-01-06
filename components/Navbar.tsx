@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Bell, User, Menu } from 'lucide-react';
+import { Search, Bell, User } from 'lucide-react';
 
 interface NavbarProps {
   onSearch: (query: string) => void;
@@ -36,14 +36,14 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch, onNavigate }) => {
             className="text-[#1ce783] text-3xl font-black tracking-tighter cursor-pointer uppercase"
             onClick={() => onNavigate('home')}
           >
-            HULU<span className="text-white">STREAM</span>
+            HULU<span className="text-white">INDO</span>
           </div>
           <ul className="hidden md:flex flex-row gap-6 text-gray-300 font-medium text-sm">
-            <li className="hover:text-white cursor-pointer transition" onClick={() => onNavigate('home')}>Home</li>
-            <li className="hover:text-white cursor-pointer transition">TV Shows</li>
-            <li className="hover:text-white cursor-pointer transition">Movies</li>
+            <li className="hover:text-white cursor-pointer transition" onClick={() => onNavigate('home')}>Beranda</li>
+            <li className="hover:text-white cursor-pointer transition">Serial TV</li>
+            <li className="hover:text-white cursor-pointer transition">Film</li>
             <li className="hover:text-white cursor-pointer transition">Anime</li>
-            <li className="hover:text-white cursor-pointer transition">My Stuff</li>
+            <li className="hover:text-white cursor-pointer transition">Koleksi Saya</li>
           </ul>
         </div>
 
@@ -52,7 +52,7 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch, onNavigate }) => {
              <Search className="w-4 h-4 text-gray-400" />
              <input 
                 type="text" 
-                placeholder="Search..." 
+                placeholder="Cari..." 
                 className="bg-transparent border-none focus:outline-none text-white text-sm px-2 w-32 focus:w-48 transition-all"
                 value={searchValue}
                 onChange={(e) => setSearchValue(e.target.value)}

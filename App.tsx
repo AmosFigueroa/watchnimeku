@@ -16,20 +16,26 @@ function App() {
 
   // Data States
   const [featuredMovie, setFeaturedMovie] = useState<Movie | null>(null);
-  const [ongoingMovies, setOngoingMovies] = useState<Movie[]>([]);
-  const [completedMovies, setCompletedMovies] = useState<Movie[]>([]);
+  const [ongoingMovies, setOngoingMovies] = useState<Movie[]>([]); // Anime Baru (Sedang Tayang)
+  const [completedMovies, setCompletedMovies] = useState<Movie[]>([]); // Anime Lama (Tamat)
+  const [youtubeMovies, setYoutubeMovies] = useState<Movie[]>([]); // Youtube Resmi Indo
+  const [scrapedMovies, setScrapedMovies] = useState<Movie[]>([]); // Film Barat
 
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
-      const { ongoing, completed } = await getHomeData();
+      const { ongoing, completed, youtube, movies } = await getHomeData();
       
       setOngoingMovies(ongoing);
       setCompletedMovies(completed);
+      setYoutubeMovies(youtube);
+      setScrapedMovies(movies);
       
       // Pick a random featured movie from ongoing list
       if (ongoing.length > 0) {
-        setFeaturedMovie(ongoing[0]);
+        setFeaturedMovie(ongoing[Math.floor(Math.random() * Math.min(ongoing.length, 5))]);
+      } else if (movies.length > 0) {
+        setFeaturedMovie(movies[0]);
       }
       
       setIsLoading(false);
@@ -76,27 +82,47 @@ function App() {
             {featuredMovie && <Hero movie={featuredMovie} onPlay={handlePlayMovie} />}
             
             <div className="relative z-10 -mt-24 md:-mt-32 space-y-2 md:space-y-6">
-              {/* Horizontal Scroll Row (Standard Streaming UI) */}
+              
+              {/* Row 1: Anime Baru / Sedang Tayang */}
               <MovieRow 
-                title="Trending Now" 
-                movies={ongoingMovies.slice(0, 10)} 
+                title="Anime Terbaru (Sedang Tayang)" 
+                movies={ongoingMovies} 
                 onMovieSelect={handlePlayMovie} 
               />
+
+              {/* Row 2: Resmi & Legal (Youtube) */}
+              {youtubeMovies.length > 0 && (
+                <MovieRow 
+                  title="Gratis & Legal (Youtube Indo)" 
+                  movies={youtubeMovies} 
+                  onMovieSelect={handlePlayMovie} 
+                />
+              )}
+
+              {/* Row 3: Film Barat */}
+              {scrapedMovies.length > 0 && (
+                <MovieRow 
+                  title="Film Populer" 
+                  movies={scrapedMovies} 
+                  onMovieSelect={handlePlayMovie} 
+                />
+              )}
               
-              {/* New Detailed Grid Layout (Anime Site Style) */}
+              {/* Grid Layout */}
               <div className="bg-[#0f1014] mt-8 pt-4 pb-8 border-t border-gray-800">
                  <FeaturedLists 
                     topAiring={ongoingMovies.slice(0, 5)}
-                    mostPopular={ongoingMovies.slice(5, 10)} // Mocking categories with slices
-                    mostFavorite={completedMovies.slice(0, 5)} 
-                    latestCompleted={completedMovies.slice(0, 5)}
+                    mostPopular={completedMovies.slice(0, 5)} 
+                    mostFavorite={completedMovies.slice(5, 10)} 
+                    latestCompleted={ongoingMovies.slice(5, 10)}
                     onPlay={handlePlayMovie}
                  />
               </div>
 
+               {/* Row 4: Anime Lama / Tamat */}
                <MovieRow 
-                title="Just Completed" 
-                movies={completedMovies.slice(0, 10)} 
+                title="Anime Lawas & Legendaris" 
+                movies={completedMovies} 
                 onMovieSelect={handlePlayMovie} 
               />
             </div>
@@ -105,29 +131,29 @@ function App() {
           <footer className="bg-black py-12 px-12 border-t border-gray-800 text-gray-500 text-sm">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
               <div>
-                <h4 className="text-white font-bold mb-4">BROWSE</h4>
+                <h4 className="text-white font-bold mb-4">JELAJAH</h4>
                 <ul className="space-y-2">
-                  <li className="hover:text-white cursor-pointer">Streaming Library</li>
-                  <li className="hover:text-white cursor-pointer">Live TV</li>
+                  <li className="hover:text-white cursor-pointer">Perpustakaan Streaming</li>
+                  <li className="hover:text-white cursor-pointer">Jadwal Tayang</li>
                 </ul>
               </div>
                <div>
-                <h4 className="text-white font-bold mb-4">HELP</h4>
+                <h4 className="text-white font-bold mb-4">BANTUAN</h4>
                 <ul className="space-y-2">
-                  <li className="hover:text-white cursor-pointer">Account & Billing</li>
-                  <li className="hover:text-white cursor-pointer">Supported Devices</li>
+                  <li className="hover:text-white cursor-pointer">Akun & Tagihan</li>
+                  <li className="hover:text-white cursor-pointer">Perangkat yang Didukung</li>
                 </ul>
               </div>
               <div>
-                <h4 className="text-white font-bold mb-4">ABOUT US</h4>
+                <h4 className="text-white font-bold mb-4">TENTANG KAMI</h4>
                 <ul className="space-y-2">
-                  <li className="hover:text-white cursor-pointer">Press</li>
-                  <li className="hover:text-white cursor-pointer">Contact</li>
+                  <li className="hover:text-white cursor-pointer">Media</li>
+                  <li className="hover:text-white cursor-pointer">Kontak</li>
                 </ul>
               </div>
             </div>
             <div className="mt-12 text-center text-xs">
-              &copy; 2024 StreamHulu Clone. Data provided by Wajik Anime API.
+              &copy; 2024 StreamHulu ID. Data provided by Jikan API & YouTube & MovieBox.
             </div>
           </footer>
 

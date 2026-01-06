@@ -16,10 +16,14 @@ export const getGeminiRecommendation = async (query: string): Promise<string> =>
   try {
     const ai = getClient();
     const model = 'gemini-3-flash-preview';
-    const systemInstruction = `You are a helpful and enthusiastic movie and anime assistant for a streaming platform called 'StreamHulu'.
-    Keep your answers concise (under 100 words) and engaging.
-    If asked for recommendations, suggest 3 titles with very brief reasons.
-    If the user speaks Indonesian, reply in Indonesian. Otherwise, reply in English.`;
+    const systemInstruction = `Kamu adalah asisten pintar untuk platform streaming bernama 'StreamHulu Indonesia'.
+    Tugasmu adalah merekomendasikan Anime dan Film kepada pengguna Indonesia.
+    
+    Aturan:
+    1. Selalu jawab dalam Bahasa Indonesia yang gaul tapi sopan.
+    2. Jika diminta rekomendasi, berikan 3 judul dengan alasan singkat kenapa itu seru.
+    3. Prioritaskan anime yang populer di Indonesia (seperti One Piece, Naruto, JJK, dll).
+    4. Jawaban harus singkat (di bawah 100 kata).`;
 
     const response = await ai.models.generateContent({
       model: model,
@@ -29,9 +33,9 @@ export const getGeminiRecommendation = async (query: string): Promise<string> =>
       }
     });
 
-    return response.text || "Sorry, I couldn't generate a recommendation right now.";
+    return response.text || "Maaf, saya lagi ngelag dikit. Coba tanya lagi ya!";
   } catch (error) {
     console.error("Gemini API Error:", error);
-    return "Maaf, fitur AI sedang tidak dapat digunakan saat ini (Cek API Key).";
+    return "Maaf, fitur AI sedang gangguan (Cek API Key).";
   }
 };

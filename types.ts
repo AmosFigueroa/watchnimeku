@@ -14,7 +14,7 @@ export interface Stream {
   server: string;
   resolution: string; // '360p', '480p', '720p', '1080p', 'HD'
   url: string;
-  type: 'iframe' | 'mp4';
+  type: 'iframe' | 'mp4' | 'youtube';
 }
 
 export interface Movie {
@@ -36,6 +36,8 @@ export interface Movie {
   episodes?: Episode[]; // List of episodes
   status?: string;
   lastUpdated?: string;
+  source?: 'scrape' | 'youtube'; // New field
+  youtubeId?: string; // Playlist or Video ID
 }
 
 export interface ChatMessage {

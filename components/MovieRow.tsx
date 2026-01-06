@@ -26,7 +26,7 @@ const MovieRow: React.FC<MovieRowProps> = ({ title, movies, onMovieSelect }) => 
           {title}
         </h2>
         <span className="text-sm font-semibold text-[#1ce783] cursor-pointer hover:underline mb-1 hidden group-hover:inline-block transition-opacity">
-          View All
+          Lihat Semua
         </span>
       </div>
       

@@ -30,16 +30,25 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ movie: initialMovie, onClose 
   // 1. Initial Load: Get Full Anime Details (Episodes)
   useEffect(() => {
     const fetchDetails = async () => {
+      // If it's a YouTube Source, we already constructed episodes in the service
+      if (initialMovie.source === 'youtube') {
+         setMovie(initialMovie);
+         if (initialMovie.episodes && initialMovie.episodes.length > 0) {
+             setCurrentEpisode(initialMovie.episodes[0]);
+         }
+         setIsLoadingDetails(false);
+         return;
+      }
+
       if (!initialMovie.slug) {
           setIsLoadingDetails(false);
           return;
       }
       
-      // If we already have episodes (passed from previous view), use them temporarily
+      // Temporary data while fetching
       if (initialMovie.episodes && initialMovie.episodes.length > 0) {
           setMovie(initialMovie);
-          setCurrentEpisode(initialMovie.episodes[0]); // Default to first
-          // Don't return yet, we might want to refresh data or get more details
+          setCurrentEpisode(initialMovie.episodes[0]); 
       }
 
       setIsLoadingDetails(true);
@@ -47,7 +56,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ movie: initialMovie, onClose 
       
       if (fullDetails) {
           setMovie(fullDetails);
-          // If we didn't have a current episode selected, select the first one
           if (!currentEpisode && fullDetails.episodes && fullDetails.episodes.length > 0) {
               setCurrentEpisode(fullDetails.episodes[0]);
           }
@@ -57,7 +65,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ movie: initialMovie, onClose 
 
     fetchDetails();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialMovie.id]); // Only run on mount or movie change
+  }, [initialMovie.id]); 
 
   // 2. Stream Fetching: Runs when currentEpisode changes
   useEffect(() => {
@@ -103,7 +111,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ movie: initialMovie, onClose 
 
   const handleEpisodeSelect = (episode: Episode) => {
     setCurrentEpisode(episode);
-    setShowSidebar(false); // Close sidebar on mobile/action
+    setShowSidebar(false); 
   };
 
   const handleStreamSelect = (stream: Stream) => {
@@ -127,7 +135,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ movie: initialMovie, onClose 
         
         <div className="flex flex-col items-end">
              <h2 className="text-white font-bold text-lg md:text-xl tracking-wide drop-shadow-md text-right">{movie.title}</h2>
-             <span className="text-[#1ce783] font-medium text-sm md:text-base drop-shadow-md">{currentTitle}</span>
+             <span className="text-[#1ce783] font-medium text-sm md:text-base drop-shadow-md">
+                {movie.source === 'youtube' && <span className="text-red-500 mr-2">● YouTube</span>}
+                {currentTitle}
+             </span>
         </div>
       </div>
 
@@ -139,9 +150,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ movie: initialMovie, onClose 
             <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/90 text-white">
                 <Loader2 className="w-16 h-16 animate-spin text-[#1ce783] mb-6" />
                 <h3 className="text-xl font-bold animate-pulse">
-                    {isLoadingDetails ? "Loading Anime Data..." : "Finding Best Servers..."}
+                    {isLoadingDetails ? "Loading Anime Data..." : "Connecting to Server..."}
                 </h3>
-                <p className="text-gray-400 mt-2 text-sm">Please wait while we scrape the sources</p>
+                <p className="text-gray-400 mt-2 text-sm">
+                    {movie.source === 'youtube' ? 'Loading YouTube Player...' : 'Searching for best stream...'}
+                </p>
             </div>
         )}
 
@@ -161,7 +174,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ movie: initialMovie, onClose 
                 src={currentStream.url}
                 className="w-full h-full border-none"
                 allowFullScreen
-                allow="autoplay; encrypted-media; picture-in-picture"
+                allow="autoplay; encrypted-media; picture-in-picture; gyroscope; accelerometer"
                 title="Video Player"
              />
         )}
