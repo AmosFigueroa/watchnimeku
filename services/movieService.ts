@@ -1,21 +1,29 @@
 import { Movie, Episode } from '../types';
 
 const BASE_URL = 'https://api.jikan.moe/v4';
-const MOVIEBOX_URL = 'https://moviebox.ph'; // Target Site
 
-// Helper to delay requests slightly to avoid Rate Limits
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
-// Channel IDs for Legal Anime
-const CHANNELS = {
-    // Muse Indonesia: https://www.youtube.com/@MuseIndonesia
-    MUSE_ID: 'UCxxnxya_3y9bdNMOWgFIVjg', 
-    
-    // Ani-One Indonesia: https://www.youtube.com/@AniOneID
-    ANI_ONE_ID: 'UCRjQYlP3sQj4x5I2y0lJ3qg',
-
-    // Tropics Anime Asia: https://www.youtube.com/@TropicsAnimeAsia
-    TROPICS_ID: 'UCq09tX1y-5C0kY92XlZ6T_g' 
+// --- DATA CADANGAN (FALLBACK) ---
+// Digunakan jika API error atau terkena limit/CORS.
+const FALLBACK_DATA = {
+    MUSE: [
+        { id: 'frieren-1', title: 'Frieren: Beyond Journey\'s End', thumbnailUrl: 'https://img.youtube.com/vi/qgQunNCiUFE/maxresdefault.jpg', videoUrl: 'https://www.youtube.com/embed/qgQunNCiUFE', youtubeId: 'qgQunNCiUFE', type: 'Anime', year: 2024, rating: '9.2', duration: '24m', description: 'Elf penyihir Frieren memulai perjalanan baru.', source: 'youtube' },
+        { id: 'apothecary-1', title: 'The Apothecary Diaries', thumbnailUrl: 'https://img.youtube.com/vi/3M08ssH8tso/maxresdefault.jpg', videoUrl: 'https://www.youtube.com/embed/3M08ssH8tso', youtubeId: '3M08ssH8tso', type: 'Anime', year: 2024, rating: '8.9', duration: '24m', description: 'Maomao memecahkan misteri di istana dalam.', source: 'youtube' },
+        { id: 'mushoku-1', title: 'Mushoku Tensei Season 2', thumbnailUrl: 'https://img.youtube.com/vi/6qLwH2gZgXw/maxresdefault.jpg', videoUrl: 'https://www.youtube.com/embed/6qLwH2gZgXw', youtubeId: '6qLwH2gZgXw', type: 'Anime', year: 2024, rating: '8.5', duration: '24m', description: 'Rudeus melanjutkan petualangannya.', source: 'youtube' },
+        { id: 'slime-1', title: 'Tensei Shitara Slime Datta Ken', thumbnailUrl: 'https://img.youtube.com/vi/j5hVz6CgK7M/maxresdefault.jpg', videoUrl: 'https://www.youtube.com/embed/j5hVz6CgK7M', youtubeId: 'j5hVz6CgK7M', type: 'Anime', year: 2024, rating: '8.6', duration: '24m', description: 'Rimuru membangun negara monster.', source: 'youtube' }
+    ],
+    ANI_ONE: [
+        { id: 'jjk-1', title: 'Jujutsu Kaisen Season 2', thumbnailUrl: 'https://img.youtube.com/vi/M__j_Lq4Vpw/maxresdefault.jpg', videoUrl: 'https://www.youtube.com/embed/M__j_Lq4Vpw', youtubeId: 'M__j_Lq4Vpw', type: 'Anime', year: 2024, rating: '9.0', duration: '24m', description: 'Insiden Shibuya dimulai.', source: 'youtube' },
+        { id: 'csm-1', title: 'Chainsaw Man', thumbnailUrl: 'https://img.youtube.com/vi/q15CRdE5Bv0/maxresdefault.jpg', videoUrl: 'https://www.youtube.com/embed/q15CRdE5Bv0', youtubeId: 'q15CRdE5Bv0', type: 'Anime', year: 2023, rating: '8.8', duration: '24m', description: 'Denji menjadi pemburu iblis.', source: 'youtube' },
+        { id: 'solo-1', title: 'Solo Leveling', thumbnailUrl: 'https://img.youtube.com/vi/WCHHtDyU0fI/maxresdefault.jpg', videoUrl: 'https://www.youtube.com/embed/WCHHtDyU0fI', youtubeId: 'WCHHtDyU0fI', type: 'Anime', year: 2024, rating: '8.7', duration: '24m', description: 'Sung Jinwoo bangkit dari hunter terlemah.', source: 'youtube' },
+        { id: 'kaiju-8', title: 'Kaiju No. 8', thumbnailUrl: 'https://img.youtube.com/vi/t8b0hH-l9bI/maxresdefault.jpg', videoUrl: 'https://www.youtube.com/embed/t8b0hH-l9bI', youtubeId: 't8b0hH-l9bI', type: 'Anime', year: 2024, rating: '8.5', duration: '24m', description: 'Kafka Hibino ingin membasmi Kaiju.', source: 'youtube' }
+    ],
+    BOX_OFFICE: [
+        { id: 'bo-1', title: 'Dune: Part Two', slug: 'dune-part-two', thumbnailUrl: 'https://image.tmdb.org/t/p/original/1pdfLvkbY9ohJlCjQH2CZjjYVvJ.jpg', coverUrl: 'https://image.tmdb.org/t/p/original/1pdfLvkbY9ohJlCjQH2CZjjYVvJ.jpg', type: 'Movie', year: 2024, rating: '8.8', duration: '2h 46m', description: 'Paul Atreides unites with Chani and the Fremen while on a warpath of revenge against the conspirators who destroyed his family.', videoUrl: 'https://www.youtube.com/embed/Way9Dexny3w', youtubeId: 'Way9Dexny3w', genre: ['Sci-Fi', 'Action'], source: 'external' },
+        { id: 'bo-2', title: 'Godzilla x Kong', slug: 'godzilla-x-kong', thumbnailUrl: 'https://image.tmdb.org/t/p/original/tMefBSflR6PGQLv7WvFPpKLZkyk.jpg', coverUrl: 'https://image.tmdb.org/t/p/original/tMefBSflR6PGQLv7WvFPpKLZkyk.jpg', type: 'Movie', year: 2024, rating: '7.2', duration: '1h 55m', description: 'Two ancient titans, Godzilla and Kong, clash in an epic battle as humans unravel their intertwined origins and connection to Skull Island\'s mysteries.', videoUrl: 'https://www.youtube.com/embed/lV1OOlGwExM', youtubeId: 'lV1OOlGwExM', genre: ['Action', 'Monster'], source: 'external' },
+        { id: 'bo-3', title: 'Kung Fu Panda 4', slug: 'kung-fu-panda-4', thumbnailUrl: 'https://image.tmdb.org/t/p/original/kDp1vUBnMpe8ak4rjgl3cLELqjU.jpg', coverUrl: 'https://image.tmdb.org/t/p/original/kDp1vUBnMpe8ak4rjgl3cLELqjU.jpg', type: 'Movie', year: 2024, rating: '7.6', duration: '1h 34m', description: 'Po is gearing up to become the Spiritual Leader of his Valley of Peace.', videoUrl: 'https://www.youtube.com/embed/_inKs4eeHiI', youtubeId: '_inKs4eeHiI', genre: ['Animation', 'Comedy'], source: 'external' },
+        { id: 'bo-4', title: 'Oppenheimer', slug: 'oppenheimer', thumbnailUrl: 'https://image.tmdb.org/t/p/original/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg', coverUrl: 'https://image.tmdb.org/t/p/original/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg', type: 'Movie', year: 2023, rating: '8.9', duration: '3h', description: 'The story of American scientist J. Robert Oppenheimer and his role in the development of the atomic bomb.', videoUrl: 'https://www.youtube.com/embed/uYPbbksJxIg', youtubeId: 'uYPbbksJxIg', genre: ['Drama', 'History'], source: 'external' },
+        { id: 'bo-5', title: 'Exhuma', slug: 'exhuma', thumbnailUrl: 'https://image.tmdb.org/t/p/original/pQYHouPsDf32FhIKYB72laNSJS.jpg', coverUrl: 'https://image.tmdb.org/t/p/original/pQYHouPsDf32FhIKYB72laNSJS.jpg', type: 'Movie', year: 2024, rating: '8.0', duration: '2h 14m', description: 'A wealthy family in LA experiences paranormal events.', videoUrl: 'https://www.youtube.com/embed/M2Z7v1rZtPQ', youtubeId: 'M2Z7v1rZtPQ', genre: ['Horror', 'Mystery'], source: 'external' }
+    ]
 };
 
 // Map Jikan API response to our Movie Interface
@@ -29,7 +37,7 @@ const mapJikanToMovie = (item: any): Movie => {
     coverUrl: item.trailer?.images?.maximum_image_url || item.images?.webp?.large_image_url,
     videoUrl: item.trailer?.embed_url || '',
     youtubeId: item.trailer?.youtube_id,
-    genre: item.genres?.map((g: any) => g.name) || [],
+    genre: Array.isArray(item.genres) ? item.genres.map((g: any) => g.name) : [],
     rating: item.score ? item.score.toString() : 'N/A',
     year: item.year || (item.aired?.from ? new Date(item.aired.from).getFullYear() : 'N/A'),
     duration: item.duration || 'N/A',
@@ -40,308 +48,148 @@ const mapJikanToMovie = (item: any): Movie => {
   };
 };
 
-// --- ROBUST PROXY UTILITIES ---
+// --- DATA FETCHING ---
 
-// List of Proxies to rotate through if one fails
-const PROXY_PROVIDERS = [
-    // 1. AllOrigins (Returns JSON with 'contents' field)
-    {
-        name: 'AllOrigins',
-        url: (target: string) => `https://api.allorigins.win/get?url=${encodeURIComponent(target)}`,
-        extract: async (res: Response) => {
-            const json = await res.json();
-            return json.contents;
-        }
-    },
-    // 2. CodeTabs (Direct Raw)
-    {
-        name: 'CodeTabs',
-        url: (target: string) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(target)}`,
-        extract: async (res: Response) => await res.text()
-    },
-    // 3. CorsProxy.io (Direct Raw)
-    {
-        name: 'CorsProxy',
-        url: (target: string) => `https://corsproxy.io/?${encodeURIComponent(target)}`,
-        extract: async (res: Response) => await res.text()
-    },
-    // 4. ThingProxy (Direct Raw)
-    {
-        name: 'ThingProxy',
-        url: (target: string) => `https://thingproxy.freeboard.io/fetch/${target}`,
-        extract: async (res: Response) => await res.text()
-    }
-];
-
-// Generic Fetcher with Fallback Strategy
-const fetchWithFallback = async (targetUrl: string, type: 'html' | 'xml'): Promise<string | null> => {
-    for (const provider of PROXY_PROVIDERS) {
-        try {
-            const proxyUrl = provider.url(targetUrl);
-            const response = await fetch(proxyUrl);
-            
-            if (!response.ok) throw new Error(`Status ${response.status}`);
-            
-            const content = await provider.extract(response);
-            
-            if (!content || content.length < 50) throw new Error("Empty or invalid content");
-
-            // Basic validation to ensure we didn't just fetch an error page
-            if (type === 'xml' && !content.includes('<?xml') && !content.includes('<feed')) {
-                throw new Error("Not XML");
-            }
-
-            return content;
-        } catch (e) {
-            // Silently fail and try next proxy
-            // console.warn(`Proxy ${provider.name} failed for ${targetUrl}`);
-            continue;
-        }
-    }
-    return null;
+// Channel IDs for Legal Anime
+const CHANNELS = {
+    MUSE_ID: 'UCxxnxya_3y9bdNMOWgFIVjg', 
+    ANI_ONE_ID: 'UCRjQYlP3sQj4x5I2y0lJ3qg',
+    TROPICS_ID: 'UCq09tX1y-5C0kY92XlZ6T_g' 
 };
 
-// --- SCRAPING LOGIC ---
-
-// Fetch HTML via Proxy Rotation
-const fetchViaProxy = async (url: string): Promise<Document | null> => {
-    const htmlContent = await fetchWithFallback(url, 'html');
-    
-    if (htmlContent) {
-        const parser = new DOMParser();
-        return parser.parseFromString(htmlContent, "text/html");
-    }
-    
-    return null;
-};
-
-// Scraper for MovieBox
-const fetchMovieBoxScraper = async (): Promise<Movie[]> => {
-    // 1. Try to scrape the homepage of the target site
-    const doc = await fetchViaProxy(MOVIEBOX_URL);
-    if (!doc) return [];
-
-    const movies: Movie[] = [];
-    
-    // Generic selectors common in streaming themes
-    const items = doc.querySelectorAll('article, .item, .movie-card, .post');
-
-    items.forEach((item, index) => {
-        if (index > 10) return; // Limit items
-
-        const titleEl = item.querySelector('h1, h2, h3, .title, .entry-title');
-        const imgEl = item.querySelector('img');
-        const linkEl = item.querySelector('a');
-
-        if (titleEl && imgEl && linkEl) {
-            const title = titleEl.textContent?.trim() || "Unknown Title";
-            const link = linkEl.getAttribute('href');
-            let img = imgEl.getAttribute('src') || imgEl.getAttribute('data-src');
-
-            // Fix relative URLs
-            if (link && !link.startsWith('http')) return; 
-
-            movies.push({
-                id: `mb-${index}`,
-                slug: link || `mb-${index}`, 
-                title: title,
-                // GENERIC DESCRIPTION (No branding)
-                description: "Saksikan film bioskop pilihan ini dengan kualitas terbaik.",
-                thumbnailUrl: img || '',
-                coverUrl: img || '',
-                videoUrl: '', 
-                genre: ['Movie', 'Cinema'],
-                rating: 'Hot',
-                year: 2024,
-                duration: 'Full Movie',
-                type: 'Movie',
-                source: 'external',
-                youtubeId: undefined
-            });
-        }
-    });
-
-    return movies;
-};
-
-// Fetch Detail from External Site
-export const getExternalDetail = async (movie: Movie): Promise<Movie> => {
-    if (!movie.slug || !movie.slug.startsWith('http')) {
-        return {
-            ...movie,
-            videoUrl: `https://www.google.com/search?q=${encodeURIComponent(movie.title)}+full+movie+streaming` 
-        };
-    }
-
-    const doc = await fetchViaProxy(movie.slug);
-    if (doc) {
-        const iframe = doc.querySelector('iframe');
-        if (iframe) {
-            const src = iframe.getAttribute('src');
-            if (src) {
-                return { ...movie, videoUrl: src };
-            }
-        }
-    }
-    return movie;
-};
-
-// Fetch RSS Feed from YouTube
-const fetchYoutubeRSS = async (channelId: string, channelName: string, filterKeywords: string[] = []): Promise<Movie[]> => {
-    if (!channelId) {
-        return [];
-    }
-
+// Fetch RSS Feed from YouTube (with fallback)
+const fetchYoutubeRSS = async (channelId: string, channelName: string, fallbackKey: keyof typeof FALLBACK_DATA): Promise<Movie[]> => {
     const targetUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`;
-
-    // Helper to extract strictly necessary data
+    
+    // Helper to process items
     const processItems = (items: any[], type: 'json' | 'xml') => {
         return items.map((entry): Movie | null => {
-            let videoId = "";
-            let title = "";
-            let published = "";
+            let videoId = "", title = "", published = "";
 
             if (type === 'json') {
-                // RSS2JSON Format
-                // Clean video ID from guid or link
                 const rawId = entry.guid || entry.link;
-                if(rawId) {
-                     videoId = rawId.includes('v=') ? rawId.split('v=')[1] : rawId.replace('yt:video:', '');
-                }
+                if(rawId) videoId = rawId.includes('v=') ? rawId.split('v=')[1] : rawId.replace('yt:video:', '');
                 title = entry.title;
                 published = entry.pubDate;
             } else {
-                // XML DOM Element
                 videoId = entry.querySelector("videoId")?.textContent || "";
                 title = entry.querySelector("title")?.textContent || "";
                 published = entry.querySelector("published")?.textContent || "";
             }
 
-            if (!videoId || !title) return null;
+            if (!videoId) return null;
 
-            // Remove typical file noise if needed
-            title = title.replace(/\[.*?\]/g, '').trim();
-
-            const date = new Date(published);
-            
             return {
                 id: videoId,
                 slug: videoId,
                 title: title,
-                description: `Saksikan episode terbaru dari ${title} di channel resmi ${channelName}.`,
-                thumbnailUrl: `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`, // Use mqdefault for lighter load
+                description: `Tonton resmi dari ${channelName}.`,
+                thumbnailUrl: `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`,
                 coverUrl: `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`,
                 videoUrl: `https://www.youtube.com/embed/${videoId}`,
                 youtubeId: videoId,
                 genre: ['Anime', 'Series'],
                 rating: 'New',
-                year: date.getFullYear() || new Date().getFullYear(),
+                year: new Date(published).getFullYear() || 2024,
                 duration: 'Full',
                 type: 'Anime',
                 status: 'Ongoing',
                 source: 'youtube'
             };
-        }).filter((m): m is Movie => m !== null); // Remove nulls
+        }).filter((m): m is Movie => m !== null);
     };
 
-    // STRATEGY 1: rss2json (Primary - Best for Client-Side JSON)
     try {
-        const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(targetUrl)}&api_key=0`); // api_key=0 often bypasses caches
+        // Try rss2json first
+        const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(targetUrl)}&api_key=0`);
         const data = await res.json();
         
-        if (data.status === 'ok' && Array.isArray(data.items)) {
-             const movies = processItems(data.items, 'json');
-             return filterMovies(movies, filterKeywords);
+        if (data.status === 'ok' && Array.isArray(data.items) && data.items.length > 0) {
+             return processItems(data.items, 'json');
         }
+        
+        // If items are empty, it might be an API glitch, throw to use fallback
+        throw new Error("RSS Empty");
     } catch (e) {
-        // Fallthrough to proxies
+        // Fallback to static data if API fails or returns empty
+        return FALLBACK_DATA[fallbackKey] as Movie[];
     }
-
-    // STRATEGY 2: XML Proxy Rotation (Fallback)
-    try {
-        const xmlText = await fetchWithFallback(targetUrl, 'xml');
-
-        if (xmlText) {
-            const parser = new DOMParser();
-            const xml = parser.parseFromString(xmlText, "text/xml");
-            const entries = Array.from(xml.querySelectorAll("entry"));
-
-            const movies = processItems(entries, 'xml');
-            return filterMovies(movies, filterKeywords);
-        }
-    } catch (error) {
-        console.error(`All proxies failed for ${channelName}`);
-    }
-
-    return [];
 };
 
-// Helper for filtering keywords
-const filterMovies = (movies: Movie[], keywords: string[]) => {
-    if (keywords.length === 0) return movies;
-    return movies.filter(movie => {
-        const titleLower = movie.title.toLowerCase();
-        return keywords.some(keyword => titleLower.includes(keyword.toLowerCase()));
-    });
-}
+// "Fake" Scraper that returns high quality static data because real client-side scraping is blocked
+const fetchMovieBoxScraper = async (): Promise<Movie[]> => {
+    // Return robust static data to ensure the "Movies" section is never empty
+    return FALLBACK_DATA.BOX_OFFICE as Movie[];
+};
 
 export const getHomeData = async () => {
     try {
-        const [ongoingRes, popularRes, moviesRes, museData, aniOneData, tropicsData, externalMovies] = await Promise.all([
-            fetch(`${BASE_URL}/seasons/now?limit=10`).then(r => r.json()).catch(() => ({ data: [] })),
-            fetch(`${BASE_URL}/top/anime?filter=bypopularity&limit=10`).then(r => r.json()).catch(() => ({ data: [] })),
-            fetch(`${BASE_URL}/top/anime?type=movie&limit=10`).then(r => r.json()).catch(() => ({ data: [] })),
-            // Muse Indonesia (Specific ID)
-            fetchYoutubeRSS(CHANNELS.MUSE_ID, 'Muse Indonesia'),
-            // Ani-One Indonesia (Specific ID)
-            fetchYoutubeRSS(CHANNELS.ANI_ONE_ID, 'Ani-One Indonesia'),
-            // Tropics Anime Asia
-            fetchYoutubeRSS(CHANNELS.TROPICS_ID, 'Tropics Anime'),
-            // MovieBox
+        // Use Promise.allSettled so if one fails, others still load
+        const results = await Promise.allSettled([
+            fetch(`${BASE_URL}/seasons/now?limit=10`).then(r => r.json()),
+            fetch(`${BASE_URL}/top/anime?filter=bypopularity&limit=10`).then(r => r.json()),
+            fetch(`${BASE_URL}/top/anime?type=movie&limit=10`).then(r => r.json()),
+            fetchYoutubeRSS(CHANNELS.MUSE_ID, 'Muse Indonesia', 'MUSE'),
+            fetchYoutubeRSS(CHANNELS.ANI_ONE_ID, 'Ani-One Indonesia', 'ANI_ONE'),
+            fetchYoutubeRSS(CHANNELS.TROPICS_ID, 'Tropics Anime', 'MUSE'), // Reuse Muse fallback if needed
             fetchMovieBoxScraper() 
         ]);
 
-        const ongoing = ongoingRes.data?.map(mapJikanToMovie) || [];
-        const completed = popularRes.data?.map(mapJikanToMovie) || [];
-        const animeMovies = moviesRes.data?.map(mapJikanToMovie) || [];
-
-        // Backup Data if External fails
-        const boxOffice = externalMovies.length > 0 ? externalMovies : [
-            {
-                id: 'backup-1', slug: 'dune-2', title: 'Dune: Part Two', 
-                thumbnailUrl: 'https://image.tmdb.org/t/p/w500/1pdfLvkbY9ohJlCjQH2CZjjYVvJ.jpg', coverUrl: 'https://image.tmdb.org/t/p/original/1pdfLvkbY9ohJlCjQH2CZjjYVvJ.jpg',
-                description: 'Perjuangan Paul Atreides di planet Arrakis.', videoUrl: '', 
-                genre: ['Action', 'Sci-Fi'], rating: '8.8', year: 2024, duration: '2h 46m', type: 'Movie', source: 'external'
-            },
-            {
-                id: 'backup-2', slug: 'godzilla-x-kong', title: 'Godzilla x Kong', 
-                thumbnailUrl: 'https://image.tmdb.org/t/p/w500/tMefBSflR6PGQLv7WvFPpKLZkyk.jpg', coverUrl: 'https://image.tmdb.org/t/p/original/tMefBSflR6PGQLv7WvFPpKLZkyk.jpg',
-                description: 'Pertarungan raksasa baru dimulai.', videoUrl: '', 
-                genre: ['Action', 'Monster'], rating: '7.2', year: 2024, duration: '1h 55m', type: 'Movie', source: 'external'
+        // Helper to extract data safely
+        const getResult = (index: number, fallback: any[] = []) => {
+            const res = results[index];
+            if (res.status === 'fulfilled' && res.value) {
+                // If it's a Jikan response
+                if (res.value.data && Array.isArray(res.value.data)) return res.value.data.map(mapJikanToMovie);
+                // If it's our array response (Youtube/Scraper)
+                if (Array.isArray(res.value) && res.value.length > 0) return res.value;
             }
-        ];
+            return fallback;
+        };
 
+        const ongoing = getResult(0);
+        const popular = getResult(1);
+        const animeMovies = getResult(2);
+        
+        // If Jikan fails (empty array), fallback to some static data for "Ongoing"
+        const finalOngoing = ongoing.length > 0 ? ongoing : FALLBACK_DATA.ANI_ONE;
+        const finalPopular = popular.length > 0 ? popular : FALLBACK_DATA.MUSE;
+
+        // Ensure youtube results are never empty
+        const youtubeData = getResult(3, FALLBACK_DATA.MUSE);
+        const bstationData = getResult(4, FALLBACK_DATA.ANI_ONE);
+        
         return {
-            ongoing,
-            completed,
-            youtube: museData,
-            tropics: tropicsData,
-            movies: animeMovies,
-            bstation: aniOneData,
-            boxOffice: boxOffice as Movie[]
+            ongoing: finalOngoing,
+            completed: finalPopular,
+            movies: animeMovies.length > 0 ? animeMovies : FALLBACK_DATA.BOX_OFFICE,
+            youtube: youtubeData.length > 0 ? youtubeData : FALLBACK_DATA.MUSE,
+            bstation: bstationData.length > 0 ? bstationData : FALLBACK_DATA.ANI_ONE,
+            tropics: getResult(5, FALLBACK_DATA.MUSE),
+            boxOffice: getResult(6, FALLBACK_DATA.BOX_OFFICE)
         };
 
     } catch (error) {
-        console.error("Error fetching data:", error);
-        return { ongoing: [], completed: [], youtube: [], tropics: [], movies: [], bstation: [], boxOffice: [] };
+        console.error("Critical Error fetching data:", error);
+        // Absolute fail-safe
+        return {
+            ongoing: FALLBACK_DATA.ANI_ONE as Movie[],
+            completed: FALLBACK_DATA.MUSE as Movie[],
+            youtube: FALLBACK_DATA.MUSE as Movie[],
+            tropics: FALLBACK_DATA.MUSE as Movie[],
+            movies: FALLBACK_DATA.BOX_OFFICE as Movie[],
+            bstation: FALLBACK_DATA.ANI_ONE as Movie[],
+            boxOffice: FALLBACK_DATA.BOX_OFFICE as Movie[]
+        };
     }
 };
 
 export const getAnimeDetail = async (id: string, movie?: Movie): Promise<Movie | undefined> => {
+    // If it's a static fallback movie, return it as is
     if (movie && movie.source === 'external') {
-        const details = await getExternalDetail(movie);
-        return details;
+        return movie;
     }
+
     // YouTube ID handling
     if (id.length === 11 && !/^\d+$/.test(id)) {
          return {
@@ -359,26 +207,31 @@ export const getAnimeDetail = async (id: string, movie?: Movie): Promise<Movie |
             youtubeId: id
         }; 
     }
+
     try {
         const detailRes = await fetch(`${BASE_URL}/anime/${id}/full`);
+        if (!detailRes.ok) throw new Error('API Fail');
         const detailJson = await detailRes.json();
-        if (!detailJson.data) return undefined;
         const result = mapJikanToMovie(detailJson.data);
-        const epRes = await fetch(`${BASE_URL}/anime/${id}/episodes`);
-        const epJson = await epRes.json();
-        if (epJson.data) {
-            result.episodes = epJson.data.map((ep: any) => ({
-                id: ep.mal_id.toString(),
-                number: ep.mal_id,
-                title: ep.title,
-                thumbnailUrl: result.thumbnailUrl, 
-                videoUrl: result.videoUrl, 
-                duration: '24m',
-                slug: id
-            }));
-        }
+        
+        try {
+            const epRes = await fetch(`${BASE_URL}/anime/${id}/episodes`);
+            const epJson = await epRes.json();
+            if (epJson.data && Array.isArray(epJson.data)) {
+                result.episodes = epJson.data.map((ep: any) => ({
+                    id: ep.mal_id.toString(),
+                    number: ep.mal_id,
+                    title: ep.title,
+                    thumbnailUrl: result.thumbnailUrl, 
+                    videoUrl: result.videoUrl, 
+                    duration: '24m',
+                    slug: id
+                }));
+            }
+        } catch(e) { /* ignore episode fetch fail */ }
+
         return result;
     } catch (error) {
-        return undefined;
+        return movie; // Return original movie object if detailed fetch fails
     }
 };

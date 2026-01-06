@@ -51,8 +51,11 @@ const AppContent = () => {
       const safeOngoing = ongoing.slice(0, 3);
       const safeBoxOffice = boxOffice.slice(0, 2); 
       const combinedHero = [...safeOngoing, ...safeBoxOffice];
+      
+      // Ensure we have unique items before mapping
       const uniqueHero = Array.from(new Set(combinedHero.map(m => m.id)))
-        .map(id => combinedHero.find(m => m.id === id)!);
+        .map(id => combinedHero.find(m => m.id === id)!)
+        .filter(Boolean); // Safety filter
         
       setHeroMovies(uniqueHero);
       setIsLoading(false);
@@ -63,7 +66,7 @@ const AppContent = () => {
 
   // Fetch Watchlist details
   useEffect(() => {
-    if (activeCategory === 'collection' && user && user.watchlist) {
+    if (activeCategory === 'collection' && user && Array.isArray(user.watchlist)) {
         const mappedList: Movie[] = user.watchlist.map(item => ({
             id: item.slug, 
             slug: item.slug,
@@ -81,6 +84,8 @@ const AppContent = () => {
             youtubeId: undefined
         }));
         setWatchlistMovies(mappedList);
+    } else {
+        setWatchlistMovies([]);
     }
   }, [activeCategory, user]);
 

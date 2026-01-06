@@ -44,7 +44,7 @@ const MovieRow: React.FC<MovieRowProps> = ({ title, movies, onMovieSelect }) => 
           ref={rowRef}
           className="flex items-center space-x-4 overflow-x-scroll hide-scroll scroll-smooth py-4"
         >
-          {movies.map((movie) => (
+          {movies && Array.isArray(movies) && movies.map((movie) => (
             <div 
               key={movie.id}
               className="relative min-w-[160px] md:min-w-[220px] h-[240px] md:h-[320px] rounded-xl overflow-hidden cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-[0_0_20px_rgba(28,231,131,0.3)] group/card bg-[#1a1c21]"
