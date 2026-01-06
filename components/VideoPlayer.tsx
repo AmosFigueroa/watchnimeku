@@ -19,7 +19,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ movie, onClose }) => {
   // Determine the correct URL.
   const getStreamUrl = () => {
       if (movie.youtubeId) {
-          return `https://www.youtube.com/embed/${movie.youtubeId}?autoplay=1&modestbranding=1&rel=0&showinfo=0`;
+          // Adding origin can sometimes help with embedding restrictions
+          const origin = window.location.origin;
+          return `https://www.youtube.com/embed/${movie.youtubeId}?autoplay=1&modestbranding=1&rel=0&showinfo=0&origin=${origin}`;
       }
       return movie.videoUrl;
   };

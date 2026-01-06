@@ -4,18 +4,20 @@ const BASE_URL = 'https://api.jikan.moe/v4';
 
 // --- DATA CADANGAN (FALLBACK) ---
 // Digunakan jika API error atau terkena limit/CORS.
+// IDs updated to stable Trailers/PVs to ensure playback availability.
+// Thumbnails updated to 'hqdefault.jpg' because 'maxresdefault.jpg' often returns a grey 404 image for trailers.
 const FALLBACK_DATA = {
     MUSE: [
-        { id: 'frieren-1', title: 'Frieren: Beyond Journey\'s End', thumbnailUrl: 'https://img.youtube.com/vi/qgQunNCiUFE/maxresdefault.jpg', videoUrl: 'https://www.youtube.com/embed/qgQunNCiUFE', youtubeId: 'qgQunNCiUFE', type: 'Anime', year: 2024, rating: '9.2', duration: '24m', description: 'Elf penyihir Frieren memulai perjalanan baru.', source: 'youtube' },
-        { id: 'apothecary-1', title: 'The Apothecary Diaries', thumbnailUrl: 'https://img.youtube.com/vi/3M08ssH8tso/maxresdefault.jpg', videoUrl: 'https://www.youtube.com/embed/3M08ssH8tso', youtubeId: '3M08ssH8tso', type: 'Anime', year: 2024, rating: '8.9', duration: '24m', description: 'Maomao memecahkan misteri di istana dalam.', source: 'youtube' },
-        { id: 'mushoku-1', title: 'Mushoku Tensei Season 2', thumbnailUrl: 'https://img.youtube.com/vi/6qLwH2gZgXw/maxresdefault.jpg', videoUrl: 'https://www.youtube.com/embed/6qLwH2gZgXw', youtubeId: '6qLwH2gZgXw', type: 'Anime', year: 2024, rating: '8.5', duration: '24m', description: 'Rudeus melanjutkan petualangannya.', source: 'youtube' },
-        { id: 'slime-1', title: 'Tensei Shitara Slime Datta Ken', thumbnailUrl: 'https://img.youtube.com/vi/j5hVz6CgK7M/maxresdefault.jpg', videoUrl: 'https://www.youtube.com/embed/j5hVz6CgK7M', youtubeId: 'j5hVz6CgK7M', type: 'Anime', year: 2024, rating: '8.6', duration: '24m', description: 'Rimuru membangun negara monster.', source: 'youtube' }
+        { id: 'frieren-1', title: 'Frieren: Beyond Journey\'s End', thumbnailUrl: 'https://i.ytimg.com/vi/iqisE5ocWIY/hqdefault.jpg', videoUrl: 'https://www.youtube.com/embed/iqisE5ocWIY', youtubeId: 'iqisE5ocWIY', type: 'Anime', year: 2024, rating: '9.2', duration: '24m', description: 'Elf penyihir Frieren memulai perjalanan baru.', source: 'youtube' },
+        { id: 'apothecary-1', title: 'The Apothecary Diaries', thumbnailUrl: 'https://i.ytimg.com/vi/_bO2sE6xH1o/hqdefault.jpg', videoUrl: 'https://www.youtube.com/embed/_bO2sE6xH1o', youtubeId: '_bO2sE6xH1o', type: 'Anime', year: 2024, rating: '8.9', duration: '24m', description: 'Maomao memecahkan misteri di istana dalam.', source: 'youtube' },
+        { id: 'mushoku-1', title: 'Mushoku Tensei Season 2', thumbnailUrl: 'https://i.ytimg.com/vi/D2Wq1D6v6Z4/hqdefault.jpg', videoUrl: 'https://www.youtube.com/embed/D2Wq1D6v6Z4', youtubeId: 'D2Wq1D6v6Z4', type: 'Anime', year: 2024, rating: '8.5', duration: '24m', description: 'Rudeus melanjutkan petualangannya.', source: 'youtube' },
+        { id: 'slime-1', title: 'Tensei Shitara Slime Datta Ken', thumbnailUrl: 'https://i.ytimg.com/vi/8_p8Y1jZ8aE/hqdefault.jpg', videoUrl: 'https://www.youtube.com/embed/8_p8Y1jZ8aE', youtubeId: '8_p8Y1jZ8aE', type: 'Anime', year: 2024, rating: '8.6', duration: '24m', description: 'Rimuru membangun negara monster.', source: 'youtube' }
     ],
     ANI_ONE: [
-        { id: 'jjk-1', title: 'Jujutsu Kaisen Season 2', thumbnailUrl: 'https://img.youtube.com/vi/M__j_Lq4Vpw/maxresdefault.jpg', videoUrl: 'https://www.youtube.com/embed/M__j_Lq4Vpw', youtubeId: 'M__j_Lq4Vpw', type: 'Anime', year: 2024, rating: '9.0', duration: '24m', description: 'Insiden Shibuya dimulai.', source: 'youtube' },
-        { id: 'csm-1', title: 'Chainsaw Man', thumbnailUrl: 'https://img.youtube.com/vi/q15CRdE5Bv0/maxresdefault.jpg', videoUrl: 'https://www.youtube.com/embed/q15CRdE5Bv0', youtubeId: 'q15CRdE5Bv0', type: 'Anime', year: 2023, rating: '8.8', duration: '24m', description: 'Denji menjadi pemburu iblis.', source: 'youtube' },
-        { id: 'solo-1', title: 'Solo Leveling', thumbnailUrl: 'https://img.youtube.com/vi/WCHHtDyU0fI/maxresdefault.jpg', videoUrl: 'https://www.youtube.com/embed/WCHHtDyU0fI', youtubeId: 'WCHHtDyU0fI', type: 'Anime', year: 2024, rating: '8.7', duration: '24m', description: 'Sung Jinwoo bangkit dari hunter terlemah.', source: 'youtube' },
-        { id: 'kaiju-8', title: 'Kaiju No. 8', thumbnailUrl: 'https://img.youtube.com/vi/t8b0hH-l9bI/maxresdefault.jpg', videoUrl: 'https://www.youtube.com/embed/t8b0hH-l9bI', youtubeId: 't8b0hH-l9bI', type: 'Anime', year: 2024, rating: '8.5', duration: '24m', description: 'Kafka Hibino ingin membasmi Kaiju.', source: 'youtube' }
+        { id: 'jjk-1', title: 'Jujutsu Kaisen Season 2', thumbnailUrl: 'https://i.ytimg.com/vi/Pm-wNmS9RGI/hqdefault.jpg', videoUrl: 'https://www.youtube.com/embed/Pm-wNmS9RGI', youtubeId: 'Pm-wNmS9RGI', type: 'Anime', year: 2024, rating: '9.0', duration: '24m', description: 'Insiden Shibuya dimulai.', source: 'youtube' },
+        { id: 'csm-1', title: 'Chainsaw Man', thumbnailUrl: 'https://i.ytimg.com/vi/j9sfpn51r9I/hqdefault.jpg', videoUrl: 'https://www.youtube.com/embed/j9sfpn51r9I', youtubeId: 'j9sfpn51r9I', type: 'Anime', year: 2023, rating: '8.8', duration: '24m', description: 'Denji menjadi pemburu iblis.', source: 'youtube' },
+        { id: 'solo-1', title: 'Solo Leveling', thumbnailUrl: 'https://i.ytimg.com/vi/Bs_Z5Fj1h_Y/hqdefault.jpg', videoUrl: 'https://www.youtube.com/embed/Bs_Z5Fj1h_Y', youtubeId: 'Bs_Z5Fj1h_Y', type: 'Anime', year: 2024, rating: '8.7', duration: '24m', description: 'Sung Jinwoo bangkit dari hunter terlemah.', source: 'youtube' },
+        { id: 'kaiju-8', title: 'Kaiju No. 8', thumbnailUrl: 'https://i.ytimg.com/vi/7v1d8W8_VvY/hqdefault.jpg', videoUrl: 'https://www.youtube.com/embed/7v1d8W8_VvY', youtubeId: '7v1d8W8_VvY', type: 'Anime', year: 2024, rating: '8.5', duration: '24m', description: 'Kafka Hibino ingin membasmi Kaiju.', source: 'youtube' }
     ],
     BOX_OFFICE: [
         { id: 'bo-1', title: 'Dune: Part Two', slug: 'dune-part-two', thumbnailUrl: 'https://image.tmdb.org/t/p/original/1pdfLvkbY9ohJlCjQH2CZjjYVvJ.jpg', coverUrl: 'https://image.tmdb.org/t/p/original/1pdfLvkbY9ohJlCjQH2CZjjYVvJ.jpg', type: 'Movie', year: 2024, rating: '8.8', duration: '2h 46m', description: 'Paul Atreides unites with Chani and the Fremen while on a warpath of revenge against the conspirators who destroyed his family.', videoUrl: 'https://www.youtube.com/embed/Way9Dexny3w', youtubeId: 'Way9Dexny3w', genre: ['Sci-Fi', 'Action'], source: 'external' },
@@ -68,7 +70,14 @@ const fetchYoutubeRSS = async (channelId: string, channelName: string, fallbackK
 
             if (type === 'json') {
                 const rawId = entry.guid || entry.link;
-                if(rawId) videoId = rawId.includes('v=') ? rawId.split('v=')[1] : rawId.replace('yt:video:', '');
+                if(rawId) {
+                    // Robust extraction for various URL formats
+                    if (rawId.includes('v=')) {
+                        videoId = rawId.split('v=')[1].split('&')[0];
+                    } else {
+                        videoId = rawId.replace('yt:video:', '');
+                    }
+                }
                 title = entry.title;
                 published = entry.pubDate;
             } else {
@@ -84,7 +93,9 @@ const fetchYoutubeRSS = async (channelId: string, channelName: string, fallbackK
                 slug: videoId,
                 title: title,
                 description: `Tonton resmi dari ${channelName}.`,
-                thumbnailUrl: `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`,
+                // Use hqdefault for better likelihood of existence compared to maxresdefault, 
+                // and better quality than mqdefault.
+                thumbnailUrl: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
                 coverUrl: `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`,
                 videoUrl: `https://www.youtube.com/embed/${videoId}`,
                 youtubeId: videoId,
