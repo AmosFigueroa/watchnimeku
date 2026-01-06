@@ -13,7 +13,6 @@ import { MonitorPlay } from 'lucide-react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { useLanguage } from './context/LanguageContext';
 
-// Internal Component to access Contexts
 const AppContent = () => {
   const [currentView, setCurrentView] = useState<'home' | 'player'>('home');
   const [activeCategory, setActiveCategory] = useState('home');
@@ -26,7 +25,7 @@ const AppContent = () => {
   const [ongoingMovies, setOngoingMovies] = useState<Movie[]>([]); 
   const [completedMovies, setCompletedMovies] = useState<Movie[]>([]); 
   const [museMovies, setMuseMovies] = useState<Movie[]>([]); 
-  const [tropicsMovies, setTropicsMovies] = useState<Movie[]>([]); // New State
+  const [tropicsMovies, setTropicsMovies] = useState<Movie[]>([]); 
   const [aniOneMovies, setAniOneMovies] = useState<Movie[]>([]); 
   const [animeMovies, setAnimeMovies] = useState<Movie[]>([]);
   const [boxOfficeMovies, setBoxOfficeMovies] = useState<Movie[]>([]);
@@ -43,17 +42,15 @@ const AppContent = () => {
       setOngoingMovies(ongoing);
       setCompletedMovies(completed);
       setMuseMovies(youtube); 
-      setTropicsMovies(tropics); // Set Tropics data
+      setTropicsMovies(tropics); 
       setAniOneMovies(bstation);
       setAnimeMovies(movies);
       setBoxOfficeMovies(boxOffice);
       
       // Select Hero Movies
-      // Mix Jikan high quality metadata with Box Office scraped data
       const safeOngoing = ongoing.slice(0, 3);
       const safeBoxOffice = boxOffice.slice(0, 2); 
       const combinedHero = [...safeOngoing, ...safeBoxOffice];
-      
       const uniqueHero = Array.from(new Set(combinedHero.map(m => m.id)))
         .map(id => combinedHero.find(m => m.id === id)!);
         
@@ -80,7 +77,7 @@ const AppContent = () => {
             rating: 'N/A',
             year: '',
             duration: '',
-            source: item.type === 'Movie' ? 'external' : 'youtube', // Guess source type
+            source: item.type === 'Movie' ? 'external' : 'youtube', 
             youtubeId: undefined
         }));
         setWatchlistMovies(mappedList);
@@ -88,33 +85,26 @@ const AppContent = () => {
   }, [activeCategory, user]);
 
   const handleMovieSelect = async (movie: Movie) => {
-    // If it's a YouTube RSS item, play directly
     if (movie.source === 'youtube' && movie.youtubeId) {
         setSelectedMovie(movie);
         setCurrentView('player');
         return;
     } 
-    
-    // For others, open detail modal which handles further scraping
     setDetailMovie(movie);
   };
 
   const handlePlayFromDetail = async (movie: Movie) => {
     setDetailMovie(null);
-    
-    // Check if we need to lazy-load the video URL for external movies
     if (movie.source === 'external' && !movie.videoUrl) {
-         // UI could show a spinner here, but we'll do it in the player or assume getAnimeDetail fetched it
          const enrichedMovie = await getAnimeDetail(movie.id.toString(), movie);
          if (enrichedMovie) {
              setSelectedMovie(enrichedMovie);
          } else {
-             setSelectedMovie(movie); // Fallback
+             setSelectedMovie(movie);
          }
     } else {
         setSelectedMovie(movie);
     }
-    
     setCurrentView('player');
   };
 
@@ -134,26 +124,23 @@ const AppContent = () => {
       case 'anime':
         return (
           <>
-             <MovieRow title="Update Anime Resmi (Official)" movies={museMovies} onMovieSelect={handleMovieSelect} />
-             {tropicsMovies.length > 0 && (
-                <MovieRow title="Koleksi Subtitle Indonesia" movies={tropicsMovies} onMovieSelect={handleMovieSelect} />
-             )}
+             <MovieRow title="Update Resmi (Indonesia)" movies={museMovies} onMovieSelect={handleMovieSelect} />
+             <MovieRow title="Serial Terpopuler (Simulcast)" movies={aniOneMovies} onMovieSelect={handleMovieSelect} />
              <MovieRow title={t.topAiring} movies={ongoingMovies} onMovieSelect={handleMovieSelect} />
-             <MovieRow title="Anime Asia Highlights" movies={aniOneMovies} onMovieSelect={handleMovieSelect} />
              <MovieRow title={t.mostFavorite} movies={animeMovies} onMovieSelect={handleMovieSelect} />
           </>
         );
       case 'series':
         return (
           <>
-             <MovieRow title="Simulcast Terbaru" movies={aniOneMovies} onMovieSelect={handleMovieSelect} />
+             <MovieRow title="Episode Baru" movies={aniOneMovies} onMovieSelect={handleMovieSelect} />
              <MovieRow title={t.tvSeries} movies={ongoingMovies} onMovieSelect={handleMovieSelect} />
           </>
         );
       case 'movies':
         return (
           <>
-             <MovieRow title="Film Bioskop Populer" movies={boxOfficeMovies} onMovieSelect={handleMovieSelect} />
+             <MovieRow title="Bioskop Online" movies={boxOfficeMovies} onMovieSelect={handleMovieSelect} />
              <MovieRow title={t.mostFavorite} movies={animeMovies} onMovieSelect={handleMovieSelect} />
              <MovieRow title={t.mostPopular} movies={completedMovies.filter(m => m.type === 'Movie')} onMovieSelect={handleMovieSelect} />
           </>
@@ -193,19 +180,15 @@ const AppContent = () => {
       default:
         return (
           <>
-            {/* YouTube Source 1: Muse -> Renamed to Official */}
-            <MovieRow title="Tayangan Anime Resmi (Gratis)" movies={museMovies} onMovieSelect={handleMovieSelect} />
+            {/* 1. Official YT Sources (Muse & AniOne Combined Concept) */}
+            <MovieRow title="Tayangan Resmi Indonesia (Gratis)" movies={museMovies} onMovieSelect={handleMovieSelect} />
+            <MovieRow title="Anime Asia Highlights" movies={aniOneMovies} onMovieSelect={handleMovieSelect} />
             
-            {/* YouTube Source 2: Tropics -> Renamed to Sub Indo */}
-            {tropicsMovies.length > 0 && (
-                <MovieRow title="Rekomendasi Subtitle Indonesia" movies={tropicsMovies} onMovieSelect={handleMovieSelect} />
-            )}
+            {/* 2. External Scraper (Moviebox) - Labelled generically */}
+            <MovieRow title="Box Office & Cinema" movies={boxOfficeMovies} onMovieSelect={handleMovieSelect} />
             
-            {/* External Source: MovieBox -> Renamed to Box Office */}
-            <MovieRow title="Film Bioskop & Box Office" movies={boxOfficeMovies} onMovieSelect={handleMovieSelect} />
-            
+            {/* 3. Global Data */}
             <MovieRow title={t.topAiring} movies={ongoingMovies} onMovieSelect={handleMovieSelect} />
-            <MovieRow title="Trending Anime Asia" movies={aniOneMovies} onMovieSelect={handleMovieSelect} />
             
             <div className="bg-[#0f1014] mt-8 pt-4 pb-8 border-t border-gray-800">
                 <FeaturedLists 
@@ -223,6 +206,7 @@ const AppContent = () => {
     }
   };
 
+  // USE SKELETON FOR LOADING
   if (isLoading) {
     return <SkeletonHome />;
   }
@@ -251,7 +235,7 @@ const AppContent = () => {
           </main>
           
           <footer className="bg-black py-12 px-12 border-t border-gray-800 text-gray-500 text-sm">
-             <div className="text-center">&copy; 2024 StreamHulu ID. Data by Jikan API, YouTube & External Sources.</div>
+             <div className="text-center">&copy; 2024 StreamHulu ID.</div>
           </footer>
 
           <AIAssistant />
@@ -276,7 +260,6 @@ const AppContent = () => {
   );
 };
 
-// Root Wraps with Provider is handled in index.tsx
 function App() {
     return (
         <AuthProvider>

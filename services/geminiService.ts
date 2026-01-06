@@ -5,9 +5,8 @@ let aiClient: GoogleGenAI | null = null;
 
 const getClient = () => {
   if (!aiClient) {
-    // Fallback to empty string to allow app to load, will fail gracefully later if used
-    const apiKey = process.env.API_KEY || ''; 
-    aiClient = new GoogleGenAI({ apiKey });
+    // The API key must be obtained exclusively from the environment variable process.env.API_KEY
+    aiClient = new GoogleGenAI({ apiKey: process.env.API_KEY });
   }
   return aiClient;
 };
