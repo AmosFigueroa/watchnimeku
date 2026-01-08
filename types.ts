@@ -36,7 +36,7 @@ export interface Movie {
   episodes?: Episode[]; // List of episodes
   status?: string;
   lastUpdated?: string;
-  source?: 'scrape' | 'youtube' | 'external'; // Added 'external'
+  source?: 'scrape' | 'youtube' | 'external' | 'otakudesu'; // Added 'otakudesu'
   youtubeId?: string; // Playlist or Video ID
 }
 
@@ -71,6 +71,7 @@ export interface Review {
   rating: number; // 1-5
   comment: string;
   createdAt: string;
+  type: 'info' | 'alert' | 'success';
 }
 
 export interface Notification {

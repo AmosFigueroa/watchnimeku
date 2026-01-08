@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Bell, User as UserIcon, LogOut, Heart, Globe } from 'lucide-react';
+import { Search, Bell, User as UserIcon, LogOut, Heart, Globe, Youtube, ChevronDown, Check } from 'lucide-react';
 import AuthModal from './AuthModal';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -8,13 +8,16 @@ interface NavbarProps {
   onSearch: (query: string) => void;
   onNavigate: (page: string) => void;
   activeCategory: string;
+  selectedSource: string;
+  onSourceChange: (source: string) => void;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ onSearch, onNavigate, activeCategory }) => {
+const Navbar: React.FC<NavbarProps> = ({ onSearch, onNavigate, activeCategory, selectedSource, onSourceChange }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [searchValue, setSearchValue] = useState('');
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showSourceMenu, setShowSourceMenu] = useState(false);
   
   const { user, isAuthenticated, logout, notifications } = useAuth();
   const { language, setLanguage, t } = useLanguage();
@@ -46,6 +49,17 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch, onNavigate, activeCategory })
 
   const toggleLanguage = () => {
     setLanguage(language === 'id' ? 'en' : 'id');
+  };
+
+  const sources = [
+    { id: 'ALL', label: 'Semua Channel' },
+    { id: 'MUSE', label: 'Muse Indonesia' },
+    { id: 'ANIONE', label: 'Ani-One Asia' },
+    { id: 'TROPICS', label: 'Tropics Anime' },
+  ];
+
+  const getSourceLabel = () => {
+    return sources.find(s => s.id === selectedSource)?.label || 'Channels';
   };
 
   return (
@@ -80,11 +94,41 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch, onNavigate, activeCategory })
           </ul>
         </div>
 
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-4">
+          {/* Source/Channel Selector */}
+          <div className="relative">
+             <button 
+                onClick={() => setShowSourceMenu(!showSourceMenu)}
+                className="flex items-center gap-2 text-gray-300 hover:text-white text-xs font-bold border border-gray-600 px-3 py-1.5 rounded-full transition bg-black/20 hover:bg-white/10"
+             >
+                <Youtube className="w-4 h-4 text-red-500" />
+                <span className="hidden lg:inline">{getSourceLabel()}</span>
+                <ChevronDown className="w-3 h-3" />
+             </button>
+
+             {showSourceMenu && (
+                 <div className="absolute right-0 top-10 w-48 bg-[#1a1c21] border border-gray-700 rounded-lg shadow-xl p-1 flex flex-col z-50 animate-in fade-in zoom-in-95 duration-100">
+                    {sources.map(source => (
+                        <button
+                            key={source.id}
+                            onClick={() => {
+                                onSourceChange(source.id);
+                                setShowSourceMenu(false);
+                            }}
+                            className="flex items-center justify-between px-3 py-2 text-left text-sm text-gray-300 hover:bg-white/10 hover:text-white rounded transition"
+                        >
+                            <span>{source.label}</span>
+                            {selectedSource === source.id && <Check className="w-3 h-3 text-[#1ce783]" />}
+                        </button>
+                    ))}
+                 </div>
+             )}
+          </div>
+
           {/* Language Toggler */}
           <button 
             onClick={toggleLanguage} 
-            className="flex items-center gap-1 text-gray-300 hover:text-white text-xs font-bold border border-gray-600 px-2 py-1 rounded-full transition"
+            className="flex items-center gap-1 text-gray-300 hover:text-white text-xs font-bold border border-gray-600 px-2 py-1.5 rounded-full transition"
           >
             <Globe className="w-3 h-3" />
             {language.toUpperCase()}

@@ -16,6 +16,7 @@ import { useLanguage } from './context/LanguageContext';
 const AppContent = () => {
   const [currentView, setCurrentView] = useState<'home' | 'player'>('home');
   const [activeCategory, setActiveCategory] = useState('home');
+  const [selectedSource, setSelectedSource] = useState('ALL'); // NEW: Track selected YouTube source
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   const [detailMovie, setDetailMovie] = useState<Movie | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -101,7 +102,8 @@ const AppContent = () => {
 
   const handlePlayFromDetail = async (movie: Movie) => {
     setDetailMovie(null);
-    if (movie.source === 'external' && !movie.videoUrl) {
+    // Handle external sources including the new Otakudesu API
+    if ((movie.source === 'external' || movie.source === 'otakudesu') && !movie.videoUrl) {
          const enrichedMovie = await getAnimeDetail(movie.id.toString(), movie);
          if (enrichedMovie) {
              setSelectedMovie(enrichedMovie);
@@ -130,8 +132,16 @@ const AppContent = () => {
       case 'anime':
         return (
           <>
-             <MovieRow title="Update Resmi (Indonesia)" movies={museMovies} onMovieSelect={handleMovieSelect} />
-             <MovieRow title="Serial Terpopuler (Simulcast)" movies={aniOneMovies} onMovieSelect={handleMovieSelect} />
+             {(selectedSource === 'ALL' || selectedSource === 'MUSE') && (
+                <MovieRow title="Muse Indonesia (Update Terbaru)" movies={museMovies} onMovieSelect={handleMovieSelect} />
+             )}
+             {(selectedSource === 'ALL' || selectedSource === 'ANIONE') && (
+                <MovieRow title="Ani-One Asia (Simulcast)" movies={aniOneMovies} onMovieSelect={handleMovieSelect} />
+             )}
+             {(selectedSource === 'ALL' || selectedSource === 'TROPICS') && (
+                <MovieRow title="Tropics Anime (Resmi)" movies={tropicsMovies} onMovieSelect={handleMovieSelect} />
+             )}
+             
              <MovieRow title={t.topAiring} movies={ongoingMovies} onMovieSelect={handleMovieSelect} />
              <MovieRow title={t.mostFavorite} movies={animeMovies} onMovieSelect={handleMovieSelect} />
           </>
@@ -186,15 +196,24 @@ const AppContent = () => {
       default:
         return (
           <>
-            {/* 1. Official YT Sources (Muse & AniOne Combined Concept) */}
-            <MovieRow title="Tayangan Resmi Indonesia (Gratis)" movies={museMovies} onMovieSelect={handleMovieSelect} />
+            {/* Logic for filtering Channels */}
+            {(selectedSource === 'ALL' || selectedSource === 'MUSE') && (
+                <MovieRow title="Tayangan Resmi (Muse Indonesia)" movies={museMovies} onMovieSelect={handleMovieSelect} />
+            )}
             
-            {/* 2. Anime Blockbusters - Replaced Western Box Office */}
+            {(selectedSource === 'ALL' || selectedSource === 'ANIONE') && (
+                <MovieRow title="Anime Asia Highlights (Ani-One)" movies={aniOneMovies} onMovieSelect={handleMovieSelect} />
+            )}
+            
+            {(selectedSource === 'ALL' || selectedSource === 'TROPICS') && (
+                <MovieRow title="Pilihan Tropics Anime" movies={tropicsMovies} onMovieSelect={handleMovieSelect} />
+            )}
+            
+            {/* Always show Blockbusters as they are global hits */}
             <MovieRow title="Anime Blockbusters" movies={boxOfficeMovies} onMovieSelect={handleMovieSelect} />
             
-            {/* 3. Global Data */}
+            {/* Global Data */}
             <MovieRow title={t.topAiring} movies={ongoingMovies} onMovieSelect={handleMovieSelect} />
-            <MovieRow title="Anime Asia Highlights" movies={aniOneMovies} onMovieSelect={handleMovieSelect} />
             
             <div className="bg-[#0f1014] mt-8 pt-4 pb-8 border-t border-gray-800">
                 <FeaturedLists 
@@ -225,6 +244,8 @@ const AppContent = () => {
             onSearch={(q) => console.log('Searching:', q)} 
             onNavigate={handleNavigate}
             activeCategory={activeCategory}
+            selectedSource={selectedSource}
+            onSourceChange={setSelectedSource}
           />
           
           <main className="pb-20">
